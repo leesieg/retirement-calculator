@@ -3,19 +3,36 @@
 <head data-page-node-id="EKectsiEMPX7E1QXtARh7Y">
 <meta charset="UTF-8" data-page-node-id="CLPwNEGI9Io2Oz6suGQH5B">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="xTqjtzThV7Vof0Ln1XpdLH">
+<meta name="color-scheme" content="light">
 <title>退休计算器 · FIRE 规划</title>
+<meta name="description" content="FIRE 退休计算器：结合涨薪、通胀与大额支出，估算你还需要工作多少年、退休目标金额与资产增长曲线。所有计算在浏览器本地完成，不保存也不上传任何数据。">
+<meta name="theme-color" content="#f5f5f4">
+<meta property="og:type" content="website">
+<meta property="og:title" content="退休计算器 · FIRE 规划">
+<meta property="og:description" content="结合涨薪、通胀与大额支出，估算还需工作多少年、退休目标金额与资产增长曲线。所有计算在浏览器本地完成，不保存任何数据。">
+<meta property="og:url" content="https://leesieg.github.io/retirement-calculator/">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="退休计算器 · FIRE 规划">
+<meta name="twitter:description" content="结合涨薪、通胀与大额支出，估算还需工作多少年与资产增长曲线。计算全在本地完成，不保存数据。">
+<link rel="icon" sizes="any" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M7,21.5L13,15L18,19L25,10.5' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
   :root {
     /* 中性暖灰底 + 单一蓝色强调，风险语义红/绿 */
     --bg: #f5f5f4;
     --card: #ffffff;
     --ink: #1c1917;
+    --ink-soft: #57534e;      /* 标签等小字号文字，比 --muted 高一档对比度 */
     --muted: #78716c;
     --line: #e7e5e4;
+    --line-strong: #d6d3d1;
     --field-bg: #fafaf9;
+    --row-hover: #fafaf9;
+    --placeholder: #a8a29e;
     --primary: #2563eb;
     --primary-deep: #1e40af;
     --primary-soft: #eaf0fe;
+    --primary-line: #d3e0fc;
     --primary-ring: rgba(37, 99, 235, .16);
     --accent: #d97706;
     --good: #047857;
@@ -27,6 +44,9 @@
     --radius: 14px;
     --radius-sm: 10px;
     --shadow: 0 1px 2px rgba(28, 25, 23, .04), 0 8px 24px -12px rgba(28, 25, 23, .10);
+    /* 间距刻度：统一到 4 / 8 的倍数，替代原先 14/18/10/6 这类零散值 */
+    --s1: 4px;  --s2: 8px;  --s3: 12px;
+    --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px;
     --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,44 +61,69 @@
   .container { max-width: 1080px; margin: 0 auto; }
 
   /* ---------- 头部 ---------- */
-  header { text-align: center; padding: 28px 0 6px; }
+  header { text-align: center; padding: var(--s8) 0 var(--s2); }
   .eyebrow {
     display: inline-block;
     font-size: 11px;
     letter-spacing: .14em;
     color: var(--primary-deep);
     background: var(--primary-soft);
-    border: 1px solid #d3e0fc;
+    border: 1px solid var(--primary-line);
     border-radius: 999px;
     padding: 4px 12px;
-    margin-bottom: 14px;
+    margin-bottom: var(--s4);
   }
   header h1 {
-    font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.4rem);
+    font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.5rem);
     letter-spacing: -0.02em;
     line-height: 1.2;
   }
   header p {
     color: var(--muted);
-    font-size: .88rem;
-    margin-top: 8px;
+    font-size: .9375rem;
+    margin-top: var(--s2);
     text-wrap: pretty;
   }
+
+  /* ---------- 隐私说明 ---------- */
+  .privacy {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--s2);
+    width: fit-content;
+    max-width: 100%;
+    margin: var(--s4) auto 0;
+    padding: var(--s2) var(--s4);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    text-align: left;
+    text-wrap: pretty;
+  }
+  .privacy svg { flex: none; margin-top: 2px; color: var(--muted); }
+  .privacy strong { font-weight: 600; color: var(--ink); }
 
   .layout {
     display: grid;
     grid-template-columns: 340px 1fr;
-    gap: 20px;
+    gap: var(--s5);
     align-items: start;
-    margin-top: 24px;
+    margin-top: var(--s6);
   }
+  /* grid 项默认 min-width:auto，会被敏感性表格的 420px 最小宽度顶破视口——
+     显式归零，让横向滚动交给 .table-scroll 自己处理 */
+  .layout > *, .results > * { min-width: 0; }
 
   /* ---------- 卡片 ---------- */
   .card {
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: var(--s5);
     box-shadow: var(--shadow);
     animation: rise .45s cubic-bezier(.2, .7, .3, 1) both;
   }
@@ -93,21 +138,23 @@
     font-weight: 600;
     letter-spacing: .04em;
     color: var(--ink);
-    margin-bottom: 14px;
-    padding-bottom: 10px;
+    margin-bottom: var(--s4);
+    padding-bottom: var(--s3);
     border-bottom: 1px solid var(--line);
   }
+  /* 小节之间的呼吸：替代原先散落的 style="margin-top:10px" */
+  .card h2:not(:first-of-type) { margin-top: var(--s5); }
 
   /* ---------- 模式切换 ---------- */
   .mode-switch {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 4px;
+    gap: var(--s1);
     background: var(--field-bg);
     border: 1px solid var(--line);
     border-radius: 999px;
-    padding: 4px;
-    margin-bottom: 18px;
+    padding: var(--s1);
+    margin-bottom: var(--s4);
   }
   .mode-switch button {
     appearance: none;
@@ -117,7 +164,8 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--muted);
-    padding: 8px 0;
+    min-height: 38px;
+    padding: var(--s2) 0;
     border-radius: 999px;
     cursor: pointer;
     transition: background .18s ease, color .18s ease, box-shadow .18s ease;
@@ -136,18 +184,20 @@
   .mode-family .spouse-only { display: block; }
 
   /* ---------- 输入 ---------- */
-  .field { margin-bottom: 14px; }
+  .field { margin-bottom: var(--s4); }
   .field label {
     display: block;
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 6px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: var(--s2);
+    cursor: pointer;
+    text-wrap: pretty;
   }
-  .field .input-wrap { display: flex; align-items: center; gap: 8px; }
+  .field .input-wrap { display: flex; align-items: center; gap: var(--s2); }
   .field input, .big-expense input {
     width: 100%;
     min-height: 42px;
-    padding: 8px 12px;
+    padding: var(--s2) var(--s3);
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     font-size: 15px;
@@ -157,7 +207,8 @@
     background: var(--field-bg);
     transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
   }
-  .field input:hover, .big-expense input:hover { border-color: #d6d3d1; }
+  .field input::placeholder, .big-expense input::placeholder { color: var(--placeholder); }
+  .field input:hover, .big-expense input:hover { border-color: var(--line-strong); }
   .field input:focus, .big-expense input:focus {
     outline: none;
     background: #fff;
@@ -165,50 +216,51 @@
     box-shadow: 0 0 0 3px var(--primary-ring);
   }
   .unit { font-size: 11px; color: var(--muted); white-space: nowrap; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
 
   .big-expense {
     display: grid;
     grid-template-columns: 1.1fr .65fr .65fr;
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: var(--s2);
+    margin-bottom: var(--s2);
   }
   .big-expense input { min-height: 38px; padding: 6px 9px; font-size: 13px; min-width: 0; }
-  .big-expense-head { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .big-expense-head { font-size: 11px; color: var(--muted); margin-bottom: var(--s2); }
 
   /* ---------- 结论区 ---------- */
-  .results { display: grid; gap: 20px; }
+  .results { display: grid; gap: var(--s5); }
   .summary-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
+    gap: var(--s3);
   }
   .stat {
     background: var(--primary-soft);
-    border: 1px solid #d3e0fc;
+    border: 1px solid var(--primary-line);
     border-radius: var(--radius-sm);
-    padding: 16px 12px;
+    padding: var(--s4) var(--s3);
     text-align: center;
   }
-  .stat .label { font-size: 11px; letter-spacing: .04em; color: var(--muted); }
+  .stat .label { font-size: 11px; letter-spacing: .04em; color: var(--ink-soft); }
   .stat .value {
-    font-size: clamp(1.25rem, 1rem + .9vw, 1.55rem);
+    font-size: clamp(1.3rem, 1rem + 1vw, 1.6rem);
     font-weight: 700;
     letter-spacing: -0.01em;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     color: var(--primary-deep);
-    margin-top: 4px;
+    margin-top: var(--s1);
     line-height: 1.25;
   }
   .stat .value.bad { color: var(--bad); }
-  .stat .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .stat .value.idle { color: var(--muted); }
+  .stat .sub { font-size: 11px; color: var(--ink-soft); margin-top: var(--s1); }
 
   .verdict {
-    margin-top: 14px;
-    padding: 12px 16px;
+    margin-top: var(--s4);
+    padding: var(--s3) var(--s4);
     border-radius: var(--radius-sm);
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.7;
     text-wrap: pretty;
     background: var(--good-bg);
@@ -216,11 +268,12 @@
     border: 1px solid var(--good-line);
   }
   .verdict.bad { background: var(--bad-bg); color: var(--bad); border-color: var(--bad-line); }
+  .verdict.neutral { background: var(--field-bg); color: var(--ink-soft); border-color: var(--line); }
 
   /* ---------- 图表 ---------- */
   #chart-wrap { width: 100%; }
   #chart { width: 100%; height: auto; display: block; }
-  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 10px; flex-wrap: wrap; }
+  .legend { display: flex; gap: var(--s4); font-size: 12px; color: var(--muted); margin-top: var(--s3); flex-wrap: wrap; }
   .legend span { display: inline-flex; align-items: center; gap: 7px; }
   .legend span::before {
     content: "";
@@ -248,7 +301,7 @@
   }
   tbody th { font-weight: 600; color: var(--ink); font-size: 12.5px; }
   tbody tr { transition: background .12s ease; }
-  tbody tr:hover { background: #f8fafc; }
+  tbody tr:hover { background: var(--row-hover); }
   tbody tr:last-child th, tbody tr:last-child td { border-bottom: none; }
   td.hl { background: var(--primary-soft); font-weight: 700; color: var(--primary-deep); }
   td.never { color: var(--bad); }
@@ -257,15 +310,29 @@
     text-align: center;
     color: var(--muted);
     font-size: 11.5px;
-    padding: 20px 0 10px;
-    margin-top: 24px;
+    padding: var(--s5) 0 var(--s3);
+    margin-top: var(--s6);
     border-top: 1px solid var(--line);
+    text-wrap: pretty;
   }
 
   @media (max-width: 860px) {
     .layout { grid-template-columns: 1fr; }
+    /* 移动端把「结论」卡提到输入面板之前：改一个数字就能立刻看到答案，不必滚过整个表单 */
+    .results { display: contents; }
+    .results > .card:nth-child(1) { order: 0; }
+    #inputs { order: 1; }
+    .results > .card:nth-child(2) { order: 2; }
+    .results > .card:nth-child(3) { order: 3; }
+    .mode-switch button { min-height: 44px; }
     .field input, .big-expense input { min-height: 44px; }
     .big-expense input { min-height: 42px; }
+  }
+  @media (max-width: 480px) {
+    /* 小屏把敏感性表压进一屏，避免表头 4 列、正文只露 3 列 */
+    table { min-width: 0; font-size: 12px; }
+    th, td { padding: var(--s2) var(--s1); }
+    thead th { font-size: 10px; letter-spacing: .02em; }
   }
   @media (prefers-reduced-motion: reduce) {
     .card { animation: none; }
@@ -279,86 +346,93 @@
     <span class="eyebrow" data-page-node-id="couKDJK5KysO9s6uTYJOD0">FIRE · 财务独立规划</span>
     <h1 data-page-node-id="wrL2e2eB9BdWBWPGClasV3">退休计算器</h1>
     <p data-page-node-id="oFCQgYkIOtbqtXAfRTDlCk">考虑涨薪、通胀与大额支出 · 单位：万元</p>
+    <p class="privacy">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+        <path d="M8 1.4 13.6 3.6v4.5c0 3.2-2.3 5.5-5.6 6.5-3.3-1-5.6-3.3-5.6-6.5V3.6L8 1.4Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+        <path d="M5.7 8.1 7.4 9.8l3.1-3.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span><strong>本页面不保存数据</strong> · 全部计算在你的浏览器本地完成，输入内容不会上传、不会存储，刷新后即清空。</span>
+    </p>
   </header>
 
   <div class="layout" data-page-node-id="YKgBiHvbWnwRuUJiE7auBw">
     <!-- 输入面板 -->
-    <section class="card" id="inputs" data-page-node-id="CF29pPYDhZBcacAeRTSm8L">
+    <section class="card" id="inputs" role="tabpanel" aria-labelledby="modeSingle" data-page-node-id="CF29pPYDhZBcacAeRTSm8L">
       <div class="mode-switch" role="tablist" aria-label="计算模式" data-page-node-id="eZOVFUZIGLE25cuxo25FYM">
-        <button type="button" id="modeSingle" class="active" role="tab" aria-selected="true" data-page-node-id="k3eq7uY1n0db0wqcBVq1eA">单身模式</button>
-        <button type="button" id="modeFamily" role="tab" aria-selected="false" data-page-node-id="tx5ib7MOe6MfnGDI3CMUJD">家庭模式（夫妻）</button>
+        <button type="button" id="modeSingle" class="active" role="tab" aria-selected="true" aria-controls="inputs" data-page-node-id="k3eq7uY1n0db0wqcBVq1eA">单身模式</button>
+        <button type="button" id="modeFamily" role="tab" aria-selected="false" aria-controls="inputs" data-page-node-id="tx5ib7MOe6MfnGDI3CMUJD">家庭模式（夫妻）</button>
       </div>
 
       <h2 data-page-node-id="yKpd5QICPaatn0D1Cd9SwA">基本情况</h2>
       <div class="field-row" data-page-node-id="Hp8jCDuwm6q1b3AqWZPbPv">
         <div class="field" data-page-node-id="F6HDCnUSjAQ1TEgtd22U6k">
-          <label data-page-node-id="E10TfnBLEK309HPZgwxcPu">当前年龄</label>
+          <label for="age" data-page-node-id="E10TfnBLEK309HPZgwxcPu">当前年龄</label>
           <div class="input-wrap" data-page-node-id="BDClrmDoyvMBnb8CZTAelV"><input type="number" id="age" value="30" min="16" max="70" data-page-node-id="QoQ34yErZEFbmgB4t5x8i5"><span class="unit" data-page-node-id="Ju68ulUohsinMdg0v5PPzR">岁</span></div>
         </div>
         <div class="field" data-page-node-id="gKNLHP9qAQ2ZuECgyitYEZ">
-          <label id="assetsLabel" data-page-node-id="eJ9et8SJmRm96PEuwePZHa">当前已有资产</label>
+          <label for="assets" id="assetsLabel" data-page-node-id="eJ9et8SJmRm96PEuwePZHa">当前已有资产</label>
           <div class="input-wrap" data-page-node-id="dwAFFE3zhjiKhXjx1SIibn"><input type="number" id="assets" value="10" min="0" step="1" data-page-node-id="FwFmVqKOUBCftTXWc5DsVO"><span class="unit" data-page-node-id="lhHpPUaDvFZiH0Dw1bCzsq">万</span></div>
         </div>
       </div>
 
-      <h2 style="margin-top:10px;" data-page-node-id="uKuimF4N0mV8RAabOH94rL">收支情况</h2>
+      <h2 data-page-node-id="uKuimF4N0mV8RAabOH94rL">收支情况</h2>
       <div class="field-row" data-page-node-id="BGSrl8dDEk4ZLJxEBmw6Oj">
         <div class="field" data-page-node-id="gu2vObtBYRrmDjYIkxAOyl">
-          <label id="incomeLabel" data-page-node-id="t0A4SbYZcHyESTp6JFXFZ5">税后年收入</label>
+          <label for="income" id="incomeLabel" data-page-node-id="t0A4SbYZcHyESTp6JFXFZ5">税后年收入</label>
           <div class="input-wrap" data-page-node-id="HmOcOHXWelWCNYjzP4yz93"><input type="number" id="income" value="20" min="0" step="0.5" data-page-node-id="mbjEyE49I2iDUTujUKLvLp"><span class="unit" data-page-node-id="7Iyv0PBHKajPSCQD2tx0Lc">万</span></div>
         </div>
         <div class="field spouse-only" data-page-node-id="2c3ayzoFUcaBcXF6cJwa7y">
-          <label data-page-node-id="upw624EynlyzixDQgZn2jc">配偶税后年收入</label>
+          <label for="spouseIncome" data-page-node-id="upw624EynlyzixDQgZn2jc">配偶税后年收入</label>
           <div class="input-wrap" data-page-node-id="y8i4eBcqOa6xSQ3az8TvpJ"><input type="number" id="spouseIncome" value="15" min="0" step="0.5" data-page-node-id="QFFYE9Y8rv6rmrLldGku6F"><span class="unit" data-page-node-id="yCBHGXkIwM46DC5iWZpB0q">万</span></div>
         </div>
         <div class="field" data-page-node-id="Aloke8d66v3c9dNXDLOAkP">
-          <label id="expenseLabel" data-page-node-id="H026k1pkqzxfrSsbYsTKQJ">年支出</label>
+          <label for="expense" id="expenseLabel" data-page-node-id="H026k1pkqzxfrSsbYsTKQJ">年支出</label>
           <div class="input-wrap" data-page-node-id="Uu528HuBb8mKZTXWQA7dJz"><input type="number" id="expense" value="12" min="0" step="0.5" data-page-node-id="VgpRKgM7DOgUYgJLAvEwLv"><span class="unit" data-page-node-id="w1SJ0CT4iI6FJmpZa3PZFz">万</span></div>
         </div>
       </div>
 
-      <h2 style="margin-top:10px;" data-page-node-id="l5hluDrzzIlopRCFLH3jSL">增长假设（% / 年）</h2>
+      <h2 data-page-node-id="l5hluDrzzIlopRCFLH3jSL">增长假设（% / 年）</h2>
       <div class="field-row" data-page-node-id="dPl7VJAhzj9hpTAw3ppv3a">
         <div class="field" data-page-node-id="ZJETDzM19J3k05vzuHCoOf">
-          <label data-page-node-id="duCtkK11UronVLqwOcEdzD">收入年增长率（涨薪）</label>
+          <label for="incomeGrowth" data-page-node-id="duCtkK11UronVLqwOcEdzD">收入年增长率（涨薪）</label>
           <div class="input-wrap" data-page-node-id="BUmJNvMhy96hrCJGFcCUaD"><input type="number" id="incomeGrowth" value="3" step="0.5" data-page-node-id="wzoHUrde8TI9MaeOeCdTbQ"><span class="unit" data-page-node-id="DpJorI8uT4qqKfdsGt2W5f">%</span></div>
         </div>
         <div class="field" data-page-node-id="UeqpoALBRyx1x31Z6rWjJw">
-          <label data-page-node-id="vg7QTC0TFDSM4eHo6BIZ3L">通胀率（支出上涨）</label>
+          <label for="inflation" data-page-node-id="vg7QTC0TFDSM4eHo6BIZ3L">通胀率（支出上涨）</label>
           <div class="input-wrap" data-page-node-id="egxOlTBxsHIFdtLkeOw8UC"><input type="number" id="inflation" value="3" step="0.5" data-page-node-id="oprUjFgnqh9ZbwPfbc4KD2"><span class="unit" data-page-node-id="tY1sKNjwAb5iAK6oRxNtPe">%</span></div>
         </div>
       </div>
       <div class="field-row" data-page-node-id="IImDL8yh7FGgxEpnffOkyO">
         <div class="field" data-page-node-id="y4foZeRroGX7jhgHkpKtZt">
-          <label data-page-node-id="0pj3vD7Zf9Ym9gTEa1tF4a">投资年化收益率</label>
+          <label for="returnRate" data-page-node-id="0pj3vD7Zf9Ym9gTEa1tF4a">投资年化收益率</label>
           <div class="input-wrap" data-page-node-id="PiU3aFZQ1SBZhIoiYsEojc"><input type="number" id="returnRate" value="5" step="0.5" data-page-node-id="Y8OXDrFBOcp7Knxc00jkDT"><span class="unit" data-page-node-id="hz3kpGfd9QyShbUcAYEry2">%</span></div>
         </div>
         <div class="field" data-page-node-id="E02K1DdqBA2UUfQ4HT3OwS">
-          <label data-page-node-id="JmhnCke6KLKy9CdgmDhiv7">安全提取率（4% 法则）</label>
+          <label for="withdrawRate" data-page-node-id="JmhnCke6KLKy9CdgmDhiv7">安全提取率（4% 法则）</label>
           <div class="input-wrap" data-page-node-id="7dNcEQ17mnZCDGLarCYvP2"><input type="number" id="withdrawRate" value="4" step="0.25" min="1" max="10" data-page-node-id="HYiRhKn0YdoLJBC9XrHUgd"><span class="unit" data-page-node-id="hfGQnWF0xEBwWHym2jTQKZ">%</span></div>
         </div>
       </div>
       <div class="field" data-page-node-id="NcVtwcFGrRYPhmFmQBjnbB">
-        <label data-page-node-id="hB3bI9PzzgmgydxcJVGDVF">最晚退休年龄</label>
+        <label for="maxAge" data-page-node-id="hB3bI9PzzgmgydxcJVGDVF">最晚退休年龄</label>
         <div class="input-wrap" data-page-node-id="r1bVK90fG8O8D3nLsJrPae"><input type="number" id="maxAge" value="65" min="40" max="80" data-page-node-id="CGi5NwyPg3sQLDIv5lJQ8m"><span class="unit" data-page-node-id="4pfhP2GVlRmyskJW7y5WVb">岁</span></div>
       </div>
 
-      <h2 style="margin-top:10px;" data-page-node-id="EYhmS91c3EgZasxduODMTB">大额支出（可选，最多 3 笔）</h2>
+      <h2 data-page-node-id="EYhmS91c3EgZasxduODMTB">大额支出（可选，最多 3 笔）</h2>
       <div class="big-expense-head" data-page-node-id="epsIVEm1axE9yKZSoVXhoU">名称 ｜ 第几年发生 ｜ 金额（万）</div>
       <div class="big-expense" data-page-node-id="Xjx0YPjNmLMTIqdU4V2BgS">
-        <input type="text" id="be1name" placeholder="如：换房首付" data-page-node-id="CgN7BYzx0nJF4ydLhEDa4y">
-        <input type="number" id="be1year" placeholder="年" min="1" data-page-node-id="7xpbaKcR2xq71UK6tVEPDI">
-        <input type="number" id="be1amt" placeholder="万" min="0" data-page-node-id="JXodqULhGB2BybFBN39sTH">
+        <input type="text" id="be1name" aria-label="第 1 笔大额支出：名称" placeholder="如：换房首付" data-page-node-id="CgN7BYzx0nJF4ydLhEDa4y">
+        <input type="number" id="be1year" aria-label="第 1 笔大额支出：第几年发生" placeholder="年" min="1" data-page-node-id="7xpbaKcR2xq71UK6tVEPDI">
+        <input type="number" id="be1amt" aria-label="第 1 笔大额支出：金额（万元）" placeholder="万" min="0" data-page-node-id="JXodqULhGB2BybFBN39sTH">
       </div>
       <div class="big-expense" data-page-node-id="jknsVKbG3ErWdUnoOnmn67">
-        <input type="text" id="be2name" placeholder="如：子女留学" data-page-node-id="K7DzGH2VLqgoKCwLxeNkJF">
-        <input type="number" id="be2year" placeholder="年" min="1" data-page-node-id="lpxpSIWJrDM0ASJZmmm20p">
-        <input type="number" id="be2amt" placeholder="万" min="0" data-page-node-id="mI9xcwiXQ5jJc8kI5Tb8f6">
+        <input type="text" id="be2name" aria-label="第 2 笔大额支出：名称" placeholder="如：子女留学" data-page-node-id="K7DzGH2VLqgoKCwLxeNkJF">
+        <input type="number" id="be2year" aria-label="第 2 笔大额支出：第几年发生" placeholder="年" min="1" data-page-node-id="lpxpSIWJrDM0ASJZmmm20p">
+        <input type="number" id="be2amt" aria-label="第 2 笔大额支出：金额（万元）" placeholder="万" min="0" data-page-node-id="mI9xcwiXQ5jJc8kI5Tb8f6">
       </div>
       <div class="big-expense" data-page-node-id="sHAvW3FG0G0JRULsiMwLJ3">
-        <input type="text" id="be3name" placeholder="如：创业资金" data-page-node-id="kkwsmKlUwAwTelNWLqkfPZ">
-        <input type="number" id="be3year" placeholder="年" min="1" data-page-node-id="vPesgEJBvJj1WVlTIkN9ca">
-        <input type="number" id="be3amt" placeholder="万" min="0" data-page-node-id="BFEM8lM2BBgwrzWECVSqCU">
+        <input type="text" id="be3name" aria-label="第 3 笔大额支出：名称" placeholder="如：创业资金" data-page-node-id="kkwsmKlUwAwTelNWLqkfPZ">
+        <input type="number" id="be3year" aria-label="第 3 笔大额支出：第几年发生" placeholder="年" min="1" data-page-node-id="vPesgEJBvJj1WVlTIkN9ca">
+        <input type="number" id="be3amt" aria-label="第 3 笔大额支出：金额（万元）" placeholder="万" min="0" data-page-node-id="BFEM8lM2BBgwrzWECVSqCU">
       </div>
     </section>
 
@@ -388,7 +462,7 @@
             <div class="sub" id="rAssetSub" data-page-node-id="kfzUDMQWGVyLPlDXOTbL5i"></div>
           </div>
         </div>
-        <div class="verdict" id="verdict" data-page-node-id="5PgbZVbI3F5SGvOkQfJP38"></div>
+        <div class="verdict" id="verdict" role="status" aria-live="polite" data-page-node-id="5PgbZVbI3F5SGvOkQfJP38"></div>
       </section>
 
       <section class="card" data-page-node-id="iOAAfH7o449fgqLXefVMjT">
@@ -422,6 +496,24 @@
   "use strict";
 
   var mode = "single"; // single | family
+  var NS = "http://www.w3.org/2000/svg";
+
+  /* 图表配色统一从 CSS 变量读取，避免换主题时页面与图表脱节 */
+  function cssVar(name, fallback) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+  var C = {};
+  function readPalette() {
+    C.grid = cssVar("--line", "#e7e5e4");
+    C.muted = cssVar("--muted", "#78716c");
+    C.accent = cssVar("--accent", "#d97706");
+    C.primary = cssVar("--primary", "#2563eb");
+    C.primaryDeep = cssVar("--primary-deep", "#1e40af");
+    C.bad = cssVar("--bad", "#b91c1c");
+    C.card = cssVar("--card", "#ffffff");
+  }
+  readPalette();
 
   function num(id, fallback) {
     var el = document.getElementById(id);
@@ -508,11 +600,13 @@
     var family = m === "family";
     var btnS = document.getElementById("modeSingle");
     var btnF = document.getElementById("modeFamily");
+    var panel = document.getElementById("inputs");
     btnS.classList.toggle("active", !family);
     btnF.classList.toggle("active", family);
     btnS.setAttribute("aria-selected", String(!family));
     btnF.setAttribute("aria-selected", String(family));
-    document.getElementById("inputs").classList.toggle("mode-family", family);
+    panel.setAttribute("aria-labelledby", family ? "modeFamily" : "modeSingle");
+    panel.classList.toggle("mode-family", family);
     document.getElementById("assetsLabel").textContent = family ? "家庭已有资产" : "当前已有资产";
     document.getElementById("incomeLabel").textContent = family ? "本人税后年收入" : "税后年收入";
     document.getElementById("expenseLabel").textContent = family ? "家庭年支出" : "年支出";
@@ -520,11 +614,23 @@
   }
 
   /* ---------- 图表（纯 SVG，响应式 viewBox） ---------- */
+  /* 输入不成立时给图形区一个诚实的空态，而不是画一条没有意义的线 */
+  function drawChartPlaceholder(msg) {
+    var svg = document.getElementById("chart");
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var t = document.createElementNS(NS, "text");
+    t.setAttribute("x", "360"); t.setAttribute("y", "184");
+    t.setAttribute("text-anchor", "middle");
+    t.setAttribute("font-size", "13");
+    t.setAttribute("fill", C.muted);
+    t.textContent = msg;
+    svg.appendChild(t);
+  }
+
   function drawChart(res, inp) {
     var svg = document.getElementById("chart");
     var W = 720, H = 360, padL = 64, padR = 16, padT = 20, padB = 36;
     var iw = W - padL - padR, ih = H - padT - padB;
-    var NS = "http://www.w3.org/2000/svg";
     while (svg.firstChild) svg.removeChild(svg.firstChild);
 
     var path = res.path;
@@ -546,12 +652,12 @@
       var line = document.createElementNS(NS, "line");
       line.setAttribute("x1", padL); line.setAttribute("x2", W - padR);
       line.setAttribute("y1", gy); line.setAttribute("y2", gy);
-      line.setAttribute("stroke", "#e7e5e4"); line.setAttribute("stroke-width", "1");
+      line.setAttribute("stroke", C.grid); line.setAttribute("stroke-width", "1");
       svg.appendChild(line);
       var txt = document.createElementNS(NS, "text");
       txt.setAttribute("x", padL - 8); txt.setAttribute("y", gy + 4);
       txt.setAttribute("text-anchor", "end");
-      txt.setAttribute("font-size", "11"); txt.setAttribute("fill", "#78716c");
+      txt.setAttribute("font-size", "11"); txt.setAttribute("fill", C.muted);
       txt.textContent = Math.abs(gv) >= 10000 ? (gv / 10000).toFixed(1) + "亿" : Math.round(gv) + "万";
       svg.appendChild(txt);
     }
@@ -561,7 +667,7 @@
       var tx = document.createElementNS(NS, "text");
       tx.setAttribute("x", x(a)); tx.setAttribute("y", H - 10);
       tx.setAttribute("text-anchor", "middle");
-      tx.setAttribute("font-size", "11"); tx.setAttribute("fill", "#78716c");
+      tx.setAttribute("font-size", "11"); tx.setAttribute("fill", C.muted);
       tx.textContent = a + "岁";
       svg.appendChild(tx);
     }
@@ -581,8 +687,8 @@
       if (dash) el.setAttribute("stroke-dasharray", "6,5");
       svg.appendChild(el);
     }
-    polyline("target", "#d97706", true);
-    polyline("assets", "#2563eb", false);
+    polyline("target", C.accent, true);
+    polyline("assets", C.primary, false);
 
     // 标签定位工具：把文字限制在绘图区内，避免溢出或被裁切
     function clampTx(tx, tw) {
@@ -595,13 +701,13 @@
       var cx = x(res.retireAge), cy = y(res.target);
       var c = document.createElementNS(NS, "circle");
       c.setAttribute("cx", cx); c.setAttribute("cy", cy); c.setAttribute("r", "6");
-      c.setAttribute("fill", "#2563eb"); c.setAttribute("stroke", "#fff"); c.setAttribute("stroke-width", "2");
+      c.setAttribute("fill", C.primary); c.setAttribute("stroke", C.card); c.setAttribute("stroke-width", "2");
       svg.appendChild(c);
       var retireLabel = res.retireAge.toFixed(1) + " 岁退休";
       var lt = document.createElementNS(NS, "text");
       lt.setAttribute("x", clampTx(cx - estWidth(retireLabel) / 2, estWidth(retireLabel)));
       lt.setAttribute("y", Math.max(cy - 12, padT + 4));
-      lt.setAttribute("font-size", "12"); lt.setAttribute("font-weight", "700"); lt.setAttribute("fill", "#1e40af");
+      lt.setAttribute("font-size", "12"); lt.setAttribute("font-weight", "700"); lt.setAttribute("fill", C.primaryDeep);
       lt.textContent = retireLabel;
       svg.appendChild(lt);
     }
@@ -616,13 +722,13 @@
       var m = document.createElementNS(NS, "rect");
       m.setAttribute("x", mx - 4); m.setAttribute("y", my - 4);
       m.setAttribute("width", "8"); m.setAttribute("height", "8");
-      m.setAttribute("fill", "#b91c1c");
+      m.setAttribute("fill", C.bad);
       svg.appendChild(m);
       var label = b.name + " -" + b.amount + "万";
       var bt = document.createElementNS(NS, "text");
       bt.setAttribute("x", clampTx(mx + 10, estWidth(label)));
       bt.setAttribute("y", Math.min(my + 18, H - padB - 4));
-      bt.setAttribute("font-size", "10"); bt.setAttribute("fill", "#b91c1c");
+      bt.setAttribute("font-size", "10"); bt.setAttribute("fill", C.bad);
       bt.textContent = label;
       svg.appendChild(bt);
     });
@@ -640,7 +746,22 @@
     var rAsset = document.getElementById("rAsset");
     var verdict = document.getElementById("verdict");
 
-    if (res.ok) {
+    /* 输入不成立时不再输出「0 年退休」这类误导结论，改为中性提示 */
+    var problem = inp.expense <= 0
+      ? "请先填写「年支出」——没有支出基数就无法推导退休目标金额。"
+      : (inp.maxAge <= inp.age ? "「最晚退休年龄」需要大于当前年龄。" : null);
+
+    if (problem) {
+      [rYears, rAge, rTarget, rAsset].forEach(function (el) {
+        el.textContent = "—";
+        el.className = "value idle";
+      });
+      ["rYearsSub", "rAgeSub", "rTargetSub", "rAssetSub"].forEach(function (id) {
+        document.getElementById(id).textContent = "";
+      });
+      verdict.className = "verdict neutral";
+      verdict.textContent = problem;
+    } else if (res.ok) {
       rYears.textContent = fmtYears(res.years);
       rYears.className = "value";
       document.getElementById("rYearsSub").textContent = "约 " + res.years.toFixed(1) + " 年";
@@ -673,7 +794,8 @@
         "。可考虑提高储蓄率、提高收益率或降低支出。";
     }
 
-    drawChart(res, inp);
+    if (problem) drawChartPlaceholder("请先完善左侧输入");
+    else drawChart(res, inp);
 
     // 敏感性：收益率 3/5/7% × 支出 -10/0/+10%
     var tbody = document.querySelector("#sensTable tbody");
@@ -685,14 +807,18 @@
       tr.appendChild(th);
       [0.9, 1.0, 1.1].forEach(function (m, idx) {
         var cell = document.createElement("td");
-        var s = simulate(inp, { returnRate: r, expenseMult: m });
-        if (s.ok) {
-          cell.textContent = s.years.toFixed(1) + " 年";
+        if (problem) {
+          cell.textContent = "—";
         } else {
-          cell.textContent = "未达标";
-          cell.className = "never";
+          var s = simulate(inp, { returnRate: r, expenseMult: m });
+          if (s.ok) {
+            cell.textContent = s.years.toFixed(1) + " 年";
+          } else {
+            cell.textContent = "未达标";
+            cell.className = "never";
+          }
+          if (idx === 1 && Math.abs(r - inp.returnRate) < 0.001) cell.className = "hl";
         }
-        if (idx === 1 && Math.abs(r - inp.returnRate) < 0.001) cell.className = "hl";
         tr.appendChild(cell);
       });
       tbody.appendChild(tr);
@@ -700,8 +826,23 @@
   }
 
   document.getElementById("inputs").addEventListener("input", render);
-  document.getElementById("modeSingle").addEventListener("click", function () { setMode("single"); });
-  document.getElementById("modeFamily").addEventListener("click", function () { setMode("family"); });
+
+  /* 模式切换：点击 + 左右方向键（标准 tablist 键盘行为） */
+  var modeTabs = [
+    { el: document.getElementById("modeSingle"), value: "single" },
+    { el: document.getElementById("modeFamily"), value: "family" }
+  ];
+  modeTabs.forEach(function (tab, i) {
+    tab.el.addEventListener("click", function () { setMode(tab.value); });
+    tab.el.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      var next = modeTabs[(i + 1) % modeTabs.length];
+      next.el.focus();
+      setMode(next.value);
+    });
+  });
+
   render();
 })();
 </script>
