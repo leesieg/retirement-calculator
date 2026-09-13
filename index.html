@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="5FNx9JTPAUEIv3KUA71Yf1">
+<html lang="zh-CN" data-theme="light" data-theme-pref="auto" data-page-node-id="5FNx9JTPAUEIv3KUA71Yf1">
 <head data-page-node-id="EKectsiEMPX7E1QXtARh7Y">
 <meta charset="UTF-8" data-page-node-id="CLPwNEGI9Io2Oz6suGQH5B">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="xTqjtzThV7Vof0Ln1XpdLH">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <title>退休计算器 · FIRE 规划</title>
 <meta name="description" content="FIRE 退休计算器：结合涨薪、通胀与大额支出，估算你还需要工作多少年、退休目标金额与资产增长曲线。所有计算在浏览器本地完成，不保存也不上传任何数据。">
-<meta name="theme-color" content="#f5f5f4">
+<meta name="theme-color" content="#f0efdf">
 <meta property="og:type" content="website">
 <meta property="og:title" content="退休计算器 · FIRE 规划">
 <meta property="og:description" content="结合涨薪、通胀与大额支出，估算还需工作多少年、退休目标金额与资产增长曲线。所有计算在浏览器本地完成，不保存任何数据。">
@@ -15,68 +15,240 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="退休计算器 · FIRE 规划">
 <meta name="twitter:description" content="结合涨薪、通胀与大额支出，估算还需工作多少年与资产增长曲线。计算全在本地完成，不保存数据。">
-<link rel="icon" sizes="any" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M7,21.5L13,15L18,19L25,10.5' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" sizes="any" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23203e35'/%3E%3Cpath d='M7,21.5L13,15L18,19L25,10.5' fill='none' stroke='%23f7eed3' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script>
+/* 主题引导：在任何绘制之前定好 data-theme，避免刷新时闪白。
+   仅读取「主题偏好」这一个键，不涉及任何输入内容。 */
+(function () {
+  var pref = "auto";
+  try { pref = localStorage.getItem("rc-theme") || "auto"; } catch (e) { }
+  var dark = pref === "dark" ||
+    (pref === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  var root = document.documentElement;
+  root.setAttribute("data-theme-pref", pref);
+  root.setAttribute("data-theme", dark ? "dark" : "light");
+  var m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute("content", dark ? "#14241e" : "#f0efdf");
+})();
+</script>
 <style>
+  /* ============================================================
+     设计令牌
+     纸与墨取自 siegtrack.com：奶油纸底 + 深墨绿正文（不是纯黑）+ 鼠尾草细描边。
+     排版：衬线标题（Songti SC）+ 无衬线正文（PingFang SC），与参考站一致。
+     ============================================================ */
   :root {
-    /* 中性暖灰底 + 单一蓝色强调，风险语义红/绿 */
-    --bg: #f5f5f4;
-    --card: #ffffff;
-    --ink: #1c1917;
-    --ink-soft: #57534e;      /* 标签等小字号文字，比 --muted 高一档对比度 */
-    --muted: #78716c;
-    --line: #e7e5e4;
-    --line-strong: #d6d3d1;
-    --field-bg: #fafaf9;
-    --row-hover: #fafaf9;
-    --placeholder: #a8a29e;
-    --primary: #2563eb;
-    --primary-deep: #1e40af;
-    --primary-soft: #eaf0fe;
-    --primary-line: #d3e0fc;
-    --primary-ring: rgba(37, 99, 235, .16);
-    --accent: #d97706;
-    --good: #047857;
-    --good-bg: #ecfdf5;
-    --good-line: #a7f3d0;
-    --bad: #b91c1c;
-    --bad-bg: #fef2f2;
-    --bad-line: #fecaca;
-    --radius: 14px;
-    --radius-sm: 10px;
-    --shadow: 0 1px 2px rgba(28, 25, 23, .04), 0 8px 24px -12px rgba(28, 25, 23, .10);
-    /* 间距刻度：统一到 4 / 8 的倍数，替代原先 14/18/10/6 这类零散值 */
+    color-scheme: light;
+
+    /* ---- 纸 ---- */
+    --paper:        #f0efdf;
+    --paper-lift:   #fbf7e6;
+    --paper-deep:   #e7e5d3;
+    --seg-active:   #fdfbf0;
+
+    /* ---- 墨 ---- */
+    --ink:          #203e35;
+    --ink-soft:     #2f4a40;
+    --muted:        #4c6459;
+    --placeholder:  #8fa08b;
+
+    /* ---- 线 ---- */
+    --line:         #c9d0bb;
+    --line-strong:  #a9b59a;
+
+    /* ---- 品牌：深墨绿 + 苔绿 ---- */
+    --primary:      #2f6b5b;
+    --primary-deep: #1a453a;
+    --primary-soft: #e3ead8;
+    --primary-line: #c4d0b2;
+    --primary-ring: rgba(47, 107, 91, .20);
+    --accent:       #a2823f;   /* 退休目标线：暗金 */
+
+    /* ---- 语义：达标苔绿 / 未达标朱砂 ---- */
+    --good:         #24523a;
+    --good-bg:      #e6eede;
+    --good-line:    #b0c7a1;
+    --bad:          #a8392c;
+    --bad-bg:       #f7e7e2;
+    --bad-line:     #dbb2a6;
+
+    /* ---- 反色面板（深绿面 + 米色字）---- */
+    --panel:        #24463b;
+    --panel-ink:    #f7eed3;
+    --panel-line:   rgba(247, 238, 211, .34);
+
+    --card:         var(--paper-lift);
+    --bg:           var(--paper);
+    --field-bg:     var(--paper-deep);
+    --row-hover:    #f5f2e2;
+
+    --radius:       6px;
+    --radius-sm:    5px;
+    /* 参考站几乎不用阴影，靠细描边分层；这里只留一点点重量 */
+    --shadow:       0 1px 0 rgba(32, 62, 53, .03), 0 16px 36px -28px rgba(32, 62, 53, .45);
+
+    /* 间距刻度：4 / 8 的倍数 */
     --s1: 4px;  --s2: 8px;  --s3: 12px;
     --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px;
-    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+
+    --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-serif: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "SimSun", Georgia, serif;
+    --ease: cubic-bezier(.2, .7, .2, 1);
   }
+
+  /* ---- 暗色：参考站的 relic 深绿夜，而非把浅色简单反相 ---- */
+  [data-theme="dark"] {
+    color-scheme: dark;
+
+    --paper:        #14241e;
+    --paper-lift:   #1c3229;
+    --paper-deep:   #0f1c17;
+    --seg-active:   #2b4c3e;
+
+    --ink:          #ece7d5;
+    --ink-soft:     #d4d7c1;
+    --muted:        #9dab9a;
+    --placeholder:  #6e8373;
+
+    --line:         #32503f;
+    --line-strong:  #47684f;
+
+    --primary:      #79c2a9;
+    --primary-deep: #a9d9be;
+    --primary-soft: #1d3a2d;
+    --primary-line: #3a5f4a;
+    --primary-ring: rgba(121, 194, 169, .28);
+    --accent:       #d6c68c;
+
+    --good:         #9ccfae;
+    --good-bg:      #16301f;
+    --good-line:    #33593f;
+    --bad:          #e69a7c;
+    --bad-bg:       #3a2521;
+    --bad-line:     #6b4034;
+
+    --panel:        #24463b;
+    --panel-ink:    #f7eed3;
+    --panel-line:   rgba(247, 238, 211, .34);
+
+    --row-hover:    #223b30;
+    --shadow:       none;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
     font-family: var(--font);
-    background: var(--bg);
+    font-size: 15px;
+    line-height: 1.7;
     color: var(--ink);
-    line-height: 1.6;
-    padding: 16px;
+    /* 顶部稍微提亮，模拟纸面受光 */
+    background-color: var(--paper);
+    background-image: linear-gradient(180deg, var(--paper-lift) 0, var(--paper) 560px);
+    background-repeat: no-repeat;
+    padding: var(--s4);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color .3s var(--ease), color .3s var(--ease);
   }
   .container { max-width: 1080px; margin: 0 auto; }
+
+  /* ---------- 顶栏 ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding: var(--s3) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    font-family: var(--font-serif);
+    font-size: 13.5px;
+    letter-spacing: .1em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .brand::before {
+    content: "";
+    width: 7px; height: 7px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--primary);
+  }
+  .brand em {
+    font-style: normal;
+    font-family: var(--font);
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* ---------- 主题切换 ---------- */
+  .theme-switch {
+    display: inline-flex;
+    gap: 2px;
+    flex: none;
+    background: var(--field-bg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px;
+  }
+  .theme-switch button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: var(--font);
+    font-size: 11.5px;
+    letter-spacing: .08em;
+    color: var(--muted);
+    min-height: 26px;
+    padding: 3px 11px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .2s var(--ease), color .2s var(--ease);
+  }
+  .theme-switch button:hover { color: var(--ink); }
+  .theme-switch button[aria-checked="true"] {
+    background: var(--seg-active);
+    color: var(--primary-deep);
+    font-weight: 600;
+  }
+  .theme-switch button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-ring);
+  }
 
   /* ---------- 头部 ---------- */
   header { text-align: center; padding: var(--s8) 0 var(--s2); }
   .eyebrow {
-    display: inline-block;
-    font-size: 11px;
-    letter-spacing: .14em;
-    color: var(--primary-deep);
-    background: var(--primary-soft);
-    border: 1px solid var(--primary-line);
-    border-radius: 999px;
-    padding: 4px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
     margin-bottom: var(--s4);
   }
+  .eyebrow::before {
+    content: "";
+    width: 5px; height: 5px;
+    flex: none;
+    background: var(--primary);
+    transform: rotate(45deg);
+  }
   header h1 {
-    font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.5rem);
-    letter-spacing: -0.02em;
-    line-height: 1.2;
+    font-family: var(--font-serif);
+    font-size: clamp(1.9rem, 1.2rem + 2.6vw, 2.85rem);
+    font-weight: 600;
+    letter-spacing: .01em;
+    line-height: 1.3;
+    text-wrap: balance;
   }
   header p {
     color: var(--muted);
@@ -94,22 +266,22 @@
     width: fit-content;
     max-width: 100%;
     margin: var(--s4) auto 0;
-    padding: var(--s2) var(--s4);
+    padding: var(--s3) var(--s4);
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     font-size: 12.5px;
-    line-height: 1.6;
+    line-height: 1.7;
     color: var(--ink-soft);
     text-align: left;
     text-wrap: pretty;
   }
-  .privacy svg { flex: none; margin-top: 2px; color: var(--muted); }
+  .privacy svg { flex: none; margin-top: 3px; color: var(--primary); }
   .privacy strong { font-weight: 600; color: var(--ink); }
 
   .layout {
     display: grid;
-    grid-template-columns: 340px 1fr;
+    grid-template-columns: 344px 1fr;
     gap: var(--s5);
     align-items: start;
     margin-top: var(--s6);
@@ -125,7 +297,8 @@
     border-radius: var(--radius);
     padding: var(--s5);
     box-shadow: var(--shadow);
-    animation: rise .45s cubic-bezier(.2, .7, .3, 1) both;
+    animation: rise .45s var(--ease) both;
+    transition: background-color .3s var(--ease), border-color .3s var(--ease);
   }
   .results .card:nth-child(2) { animation-delay: .06s; }
   .results .card:nth-child(3) { animation-delay: .12s; }
@@ -134,47 +307,96 @@
     to   { opacity: 1; transform: translateY(0); }
   }
   .card h2 {
-    font-size: 13px;
+    font-family: var(--font-serif);
+    font-size: 15.5px;
     font-weight: 600;
-    letter-spacing: .04em;
+    letter-spacing: .06em;
     color: var(--ink);
     margin-bottom: var(--s4);
     padding-bottom: var(--s3);
     border-bottom: 1px solid var(--line);
   }
-  /* 小节之间的呼吸：替代原先散落的 style="margin-top:10px" */
   .card h2:not(:first-of-type) { margin-top: var(--s5); }
 
-  /* ---------- 模式切换 ---------- */
+  /* ---------- 按钮 ---------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: none;
+    font-family: var(--font);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: .04em;
+    min-height: 38px;
+    padding: 0 var(--s3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--paper-lift);
+    color: var(--ink-soft);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color .2s var(--ease), color .2s var(--ease),
+                background .2s var(--ease), opacity .2s var(--ease);
+  }
+  .btn:hover:not(:disabled) { border-color: var(--line-strong); color: var(--ink); }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--primary-ring); }
+  .btn:disabled { opacity: .42; cursor: not-allowed; }
+  .btn svg { flex: none; }
+
+  /* 「恢复默认」是次要动作：默认不描边，免得和模式切换抢视线 */
+  .btn-reset {
+    border-color: transparent;
+    background: transparent;
+    color: var(--muted);
+    padding: 0 var(--s2);
+  }
+  .btn-reset:hover:not(:disabled) {
+    border-color: var(--line);
+    background: var(--paper-lift);
+    color: var(--ink);
+  }
+  .btn-reset:disabled { opacity: .38; }
+
+  /* ---------- 模式切换 + 面板工具条 ---------- */
+  .panel-head {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    margin-bottom: var(--s4);
+  }
   .mode-switch {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    flex: 1 1 auto;
+    min-width: 0;
     gap: var(--s1);
     background: var(--field-bg);
     border: 1px solid var(--line);
     border-radius: 999px;
     padding: var(--s1);
-    margin-bottom: var(--s4);
   }
   .mode-switch button {
     appearance: none;
     border: none;
     background: transparent;
     font-family: var(--font);
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 600;
+    letter-spacing: .04em;
     color: var(--muted);
-    min-height: 38px;
+    min-height: 36px;
     padding: var(--s2) 0;
     border-radius: 999px;
     cursor: pointer;
-    transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+    transition: background .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease);
   }
   .mode-switch button:hover { color: var(--ink); }
   .mode-switch button.active {
-    background: #fff;
+    background: var(--seg-active);
     color: var(--primary-deep);
-    box-shadow: 0 1px 3px rgba(28, 25, 23, .12);
+    box-shadow: 0 1px 3px rgba(32, 62, 53, .14);
   }
   .mode-switch button:focus-visible {
     outline: none;
@@ -205,13 +427,13 @@
     font-family: var(--font);
     color: var(--ink);
     background: var(--field-bg);
-    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    transition: border-color .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
   }
   .field input::placeholder, .big-expense input::placeholder { color: var(--placeholder); }
   .field input:hover, .big-expense input:hover { border-color: var(--line-strong); }
   .field input:focus, .big-expense input:focus {
     outline: none;
-    background: #fff;
+    background: var(--card);
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-ring);
   }
@@ -225,7 +447,7 @@
     margin-bottom: var(--s2);
   }
   .big-expense input { min-height: 38px; padding: 6px 9px; font-size: 13px; min-width: 0; }
-  .big-expense-head { font-size: 11px; color: var(--muted); margin-bottom: var(--s2); }
+  .big-expense-head { font-size: 11px; color: var(--muted); letter-spacing: .04em; margin-bottom: var(--s2); }
 
   /* ---------- 结论区 ---------- */
   .results { display: grid; gap: var(--s5); }
@@ -237,20 +459,22 @@
   .stat {
     background: var(--primary-soft);
     border: 1px solid var(--primary-line);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     padding: var(--s4) var(--s3);
     text-align: center;
+    transition: background-color .3s var(--ease), border-color .3s var(--ease);
   }
-  .stat .label { font-size: 11px; letter-spacing: .04em; color: var(--ink-soft); }
+  .stat .label { font-size: 10.5px; letter-spacing: .14em; color: var(--ink-soft); }
   .stat .value {
-    font-size: clamp(1.3rem, 1rem + 1vw, 1.6rem);
-    font-weight: 700;
-    letter-spacing: -0.01em;
+    font-family: var(--font-serif);
+    font-size: clamp(1.35rem, 1.05rem + 1vw, 1.7rem);
+    font-weight: 600;
+    letter-spacing: 0;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     color: var(--primary-deep);
     margin-top: var(--s1);
-    line-height: 1.25;
+    line-height: 1.35;
   }
   .stat .value.bad { color: var(--bad); }
   .stat .value.idle { color: var(--muted); }
@@ -259,13 +483,14 @@
   .verdict {
     margin-top: var(--s4);
     padding: var(--s3) var(--s4);
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    line-height: 1.7;
+    border-radius: var(--radius);
+    font-size: 13.5px;
+    line-height: 1.75;
     text-wrap: pretty;
     background: var(--good-bg);
     color: var(--good);
     border: 1px solid var(--good-line);
+    transition: background-color .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease);
   }
   .verdict.bad { background: var(--bad-bg); color: var(--bad); border-color: var(--bad-line); }
   .verdict.neutral { background: var(--field-bg); color: var(--ink-soft); border-color: var(--line); }
@@ -296,11 +521,17 @@
     background: var(--field-bg);
     color: var(--muted);
     font-weight: 600;
-    font-size: 11px;
-    letter-spacing: .06em;
+    font-size: 10.5px;
+    letter-spacing: .1em;
   }
-  tbody th { font-weight: 600; color: var(--ink); font-size: 12.5px; }
-  tbody tr { transition: background .12s ease; }
+  tbody th {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 13px;
+    letter-spacing: .02em;
+  }
+  tbody tr { transition: background .12s var(--ease); }
   tbody tr:hover { background: var(--row-hover); }
   tbody tr:last-child th, tbody tr:last-child td { border-bottom: none; }
   td.hl { background: var(--primary-soft); font-weight: 700; color: var(--primary-deep); }
@@ -310,10 +541,54 @@
     text-align: center;
     color: var(--muted);
     font-size: 11.5px;
+    letter-spacing: .04em;
     padding: var(--s5) 0 var(--s3);
     margin-top: var(--s6);
     border-top: 1px solid var(--line);
     text-wrap: pretty;
+  }
+
+  /* ---------- 提示条（恢复默认的撤销）---------- */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: var(--s4);
+    max-width: calc(100vw - 32px);
+    padding: var(--s2) var(--s2) var(--s2) var(--s4);
+    background: var(--panel);
+    color: var(--panel-ink);
+    border: 1px solid var(--panel-line);
+    border-radius: var(--radius);
+    font-size: 13px;
+    letter-spacing: .03em;
+    box-shadow: 0 16px 38px -18px rgba(12, 28, 22, .7);
+    z-index: 30;
+    animation: toastIn .28s var(--ease) both;
+  }
+  .toast[hidden] { display: none; }
+  .toast button {
+    appearance: none;
+    flex: none;
+    border: 1px solid var(--panel-line);
+    background: transparent;
+    color: var(--panel-ink);
+    font-family: var(--font);
+    font-size: 12.5px;
+    letter-spacing: .06em;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .18s var(--ease);
+  }
+  .toast button:hover { background: rgba(247, 238, 211, .16); }
+  .toast button:focus-visible { outline: 2px solid var(--panel-ink); outline-offset: 2px; }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
   }
 
   @media (max-width: 860px) {
@@ -327,6 +602,11 @@
     .mode-switch button { min-height: 44px; }
     .field input, .big-expense input { min-height: 44px; }
     .big-expense input { min-height: 42px; }
+    .btn { min-height: 44px; }
+  }
+  @media (max-width: 520px) {
+    /* 一行放得下就别拆成两行：只把 FIRE 后缀收掉腾位置 */
+    .brand em { display: none; }
   }
   @media (max-width: 480px) {
     /* 小屏把敏感性表压进一屏，避免表头 4 列、正文只露 3 列 */
@@ -335,13 +615,24 @@
     thead th { font-size: 10px; letter-spacing: .02em; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .card { animation: none; }
+    .card, .toast { animation: none; }
     * { transition: none; }
   }
 </style>
 </head>
 <body data-page-node-id="joXVHY2AqWVg8IFH4OcuOG">
 <div class="container" data-page-node-id="rkfKNNFNEGMjoi6q0xvUVo">
+
+  <!-- 顶栏：品牌 + 主题切换 -->
+  <div class="topbar">
+    <span class="brand">退休计算器 <em>FIRE</em></span>
+    <div class="theme-switch" role="radiogroup" aria-label="配色主题">
+      <button type="button" role="radio" data-theme-pref="auto" aria-checked="true" title="跟随系统">自动</button>
+      <button type="button" role="radio" data-theme-pref="light" aria-checked="false" title="浅色">浅</button>
+      <button type="button" role="radio" data-theme-pref="dark" aria-checked="false" title="深色">深</button>
+    </div>
+  </div>
+
   <header data-page-node-id="3FGBSMjgRCxuTUaUzZd3U1">
     <span class="eyebrow" data-page-node-id="couKDJK5KysO9s6uTYJOD0">FIRE · 财务独立规划</span>
     <h1 data-page-node-id="wrL2e2eB9BdWBWPGClasV3">退休计算器</h1>
@@ -351,16 +642,25 @@
         <path d="M8 1.4 13.6 3.6v4.5c0 3.2-2.3 5.5-5.6 6.5-3.3-1-5.6-3.3-5.6-6.5V3.6L8 1.4Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
         <path d="M5.7 8.1 7.4 9.8l3.1-3.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span><strong>本页面不保存数据</strong> · 全部计算在你的浏览器本地完成，输入内容不会上传、不会存储，刷新后即清空。</span>
+      <span><strong>本页面不保存数据</strong> · 全部计算在你的浏览器本地完成，输入内容不会上传、不会存储，刷新后即清空；仅「主题偏好」记在本地，不含任何输入内容。</span>
     </p>
   </header>
 
   <div class="layout" data-page-node-id="YKgBiHvbWnwRuUJiE7auBw">
     <!-- 输入面板 -->
     <section class="card" id="inputs" role="tabpanel" aria-labelledby="modeSingle" data-page-node-id="CF29pPYDhZBcacAeRTSm8L">
-      <div class="mode-switch" role="tablist" aria-label="计算模式" data-page-node-id="eZOVFUZIGLE25cuxo25FYM">
-        <button type="button" id="modeSingle" class="active" role="tab" aria-selected="true" aria-controls="inputs" data-page-node-id="k3eq7uY1n0db0wqcBVq1eA">单身模式</button>
-        <button type="button" id="modeFamily" role="tab" aria-selected="false" aria-controls="inputs" data-page-node-id="tx5ib7MOe6MfnGDI3CMUJD">家庭模式（夫妻）</button>
+      <div class="panel-head">
+        <div class="mode-switch" role="tablist" aria-label="计算模式" data-page-node-id="eZOVFUZIGLE25cuxo25FYM">
+          <button type="button" id="modeSingle" class="active" role="tab" aria-selected="true" aria-controls="inputs" data-page-node-id="k3eq7uY1n0db0wqcBVq1eA">单身模式</button>
+          <button type="button" id="modeFamily" role="tab" aria-selected="false" aria-controls="inputs" data-page-node-id="tx5ib7MOe6MfnGDI3CMUJD">家庭模式</button>
+        </div>
+        <button type="button" class="btn btn-reset" id="resetBtn" title="把所有参数恢复为默认值">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+            <path d="M13.2 8a5.2 5.2 0 1 1-1.7-3.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M13.6 1.9v3.2h-3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          恢复默认
+        </button>
       </div>
 
       <h2 data-page-node-id="yKpd5QICPaatn0D1Cd9SwA">基本情况</h2>
@@ -491,6 +791,12 @@
   <footer data-page-node-id="iaQ47kOkMr57Nt79JKvs41">本工具为规划参考，不构成投资建议。实际投资存在波动风险。</footer>
 </div>
 
+<!-- 恢复默认后的撤销提示 -->
+<div class="toast" id="toast" role="status" aria-live="polite" hidden>
+  <span>已恢复默认参数</span>
+  <button type="button" id="toastUndo">撤销</button>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -505,13 +811,13 @@
   }
   var C = {};
   function readPalette() {
-    C.grid = cssVar("--line", "#e7e5e4");
-    C.muted = cssVar("--muted", "#78716c");
-    C.accent = cssVar("--accent", "#d97706");
-    C.primary = cssVar("--primary", "#2563eb");
-    C.primaryDeep = cssVar("--primary-deep", "#1e40af");
-    C.bad = cssVar("--bad", "#b91c1c");
-    C.card = cssVar("--card", "#ffffff");
+    C.grid = cssVar("--line", "#c9d0bb");
+    C.muted = cssVar("--muted", "#4c6459");
+    C.accent = cssVar("--accent", "#a2823f");
+    C.primary = cssVar("--primary", "#2f6b5b");
+    C.primaryDeep = cssVar("--primary-deep", "#1a453a");
+    C.bad = cssVar("--bad", "#a8392c");
+    C.card = cssVar("--card", "#fbf7e6");
   }
   readPalette();
 
@@ -613,15 +919,43 @@
     render();
   }
 
-  /* ---------- 图表（纯 SVG，响应式 viewBox） ---------- */
+  /* ---------- 图表（纯 SVG，viewBox 随容器宽度） ---------- */
+  /* 关键：viewBox 宽度取容器的实际像素宽，1 个用户单位 ≈ 1 CSS px。
+     若写死 720 宽，窄屏上整图被等比压到 ~350px，11 单位的字号只剩 5px 左右，
+     坐标标签就废了；跟着容器走则字号、线宽在任何屏幕都是稳定像素。 */
+  var lastChartW = 0;
+  function chartBox() {
+    var wrap = document.getElementById("chart-wrap");
+    var cw = (wrap && wrap.clientWidth) || 720;
+    /* 下限取 220：320px 视口下容器约 246px，下限高于它就会产生拉伸 */
+    var W = Math.max(220, Math.round(cw));
+    var narrow = W < 520;
+    /* 窄屏用更接近 4:3 的比例，太扁会让曲线压成一条线 */
+    var H = Math.round(Math.min(400, Math.max(190, W * (narrow ? 0.68 : 0.54))));
+    lastChartW = W;
+    document.getElementById("chart").setAttribute("viewBox", "0 0 " + W + " " + H);
+    return {
+      W: W, H: H, narrow: narrow,
+      padL: narrow ? 44 : 62,
+      padR: narrow ? 12 : 16,
+      padT: 18,
+      padB: narrow ? 30 : 36,
+      fsTiny: narrow ? 9 : 10,
+      fsSmall: narrow ? 10 : 11,
+      fsMid: narrow ? 11 : 12
+    };
+  }
+
   /* 输入不成立时给图形区一个诚实的空态，而不是画一条没有意义的线 */
   function drawChartPlaceholder(msg) {
     var svg = document.getElementById("chart");
+    var b = chartBox();
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     var t = document.createElementNS(NS, "text");
-    t.setAttribute("x", "360"); t.setAttribute("y", "184");
+    t.setAttribute("x", String(b.W / 2));
+    t.setAttribute("y", String(Math.round(b.H / 2)));
     t.setAttribute("text-anchor", "middle");
-    t.setAttribute("font-size", "13");
+    t.setAttribute("font-size", String(b.fsMid));
     t.setAttribute("fill", C.muted);
     t.textContent = msg;
     svg.appendChild(t);
@@ -629,7 +963,8 @@
 
   function drawChart(res, inp) {
     var svg = document.getElementById("chart");
-    var W = 720, H = 360, padL = 64, padR = 16, padT = 20, padB = 36;
+    var b = chartBox();
+    var W = b.W, H = b.H, padL = b.padL, padR = b.padR, padT = b.padT, padB = b.padB;
     var iw = W - padL - padR, ih = H - padT - padB;
     while (svg.firstChild) svg.removeChild(svg.firstChild);
 
@@ -655,9 +990,9 @@
       line.setAttribute("stroke", C.grid); line.setAttribute("stroke-width", "1");
       svg.appendChild(line);
       var txt = document.createElementNS(NS, "text");
-      txt.setAttribute("x", padL - 8); txt.setAttribute("y", gy + 4);
+      txt.setAttribute("x", padL - 7); txt.setAttribute("y", gy + 4);
       txt.setAttribute("text-anchor", "end");
-      txt.setAttribute("font-size", "11"); txt.setAttribute("fill", C.muted);
+      txt.setAttribute("font-size", String(b.fsSmall)); txt.setAttribute("fill", C.muted);
       txt.textContent = Math.abs(gv) >= 10000 ? (gv / 10000).toFixed(1) + "亿" : Math.round(gv) + "万";
       svg.appendChild(txt);
     }
@@ -665,9 +1000,9 @@
     var step = Math.max(1, Math.round((maxAge - minAge) / 6));
     for (var a = minAge; a <= maxAge; a += step) {
       var tx = document.createElementNS(NS, "text");
-      tx.setAttribute("x", x(a)); tx.setAttribute("y", H - 10);
+      tx.setAttribute("x", x(a)); tx.setAttribute("y", H - (b.narrow ? 8 : 10));
       tx.setAttribute("text-anchor", "middle");
-      tx.setAttribute("font-size", "11"); tx.setAttribute("fill", C.muted);
+      tx.setAttribute("font-size", String(b.fsSmall)); tx.setAttribute("fill", C.muted);
       tx.textContent = a + "岁";
       svg.appendChild(tx);
     }
@@ -694,7 +1029,7 @@
     function clampTx(tx, tw) {
       return Math.max(padL + 2, Math.min(tx, W - padR - tw));
     }
-    function estWidth(s) { return s.length * 11 + 6; }
+    function estWidth(s) { return s.length * b.fsMid + 6; }
 
     // 退休交叉点（标签放在点的上方）
     if (res.ok) {
@@ -707,16 +1042,16 @@
       var lt = document.createElementNS(NS, "text");
       lt.setAttribute("x", clampTx(cx - estWidth(retireLabel) / 2, estWidth(retireLabel)));
       lt.setAttribute("y", Math.max(cy - 12, padT + 4));
-      lt.setAttribute("font-size", "12"); lt.setAttribute("font-weight", "700"); lt.setAttribute("fill", C.primaryDeep);
+      lt.setAttribute("font-size", String(b.fsMid)); lt.setAttribute("font-weight", "700"); lt.setAttribute("fill", C.primaryDeep);
       lt.textContent = retireLabel;
       svg.appendChild(lt);
     }
 
     // 大额支出标记（标签放在点的下方，与退休标签错开）
-    inp.bigExpenses.forEach(function (b) {
-      var age = inp.age + b.year;
+    inp.bigExpenses.forEach(function (b2) {
+      var age = inp.age + b2.year;
       if (age > maxAge) return;
-      var p = path[b.year];
+      var p = path[b2.year];
       if (!p) return;
       var mx = x(age), my = y(Math.max(p.assets, minV));
       var m = document.createElementNS(NS, "rect");
@@ -724,11 +1059,11 @@
       m.setAttribute("width", "8"); m.setAttribute("height", "8");
       m.setAttribute("fill", C.bad);
       svg.appendChild(m);
-      var label = b.name + " -" + b.amount + "万";
+      var label = b2.name + " -" + b2.amount + "万";
       var bt = document.createElementNS(NS, "text");
       bt.setAttribute("x", clampTx(mx + 10, estWidth(label)));
       bt.setAttribute("y", Math.min(my + 18, H - padB - 4));
-      bt.setAttribute("font-size", "10"); bt.setAttribute("fill", C.bad);
+      bt.setAttribute("font-size", String(b.fsTiny)); bt.setAttribute("fill", C.bad);
       bt.textContent = label;
       svg.appendChild(bt);
     });
@@ -823,9 +1158,29 @@
       });
       tbody.appendChild(tr);
     });
+
+    // 已是默认值时「恢复默认」无意义，置灰
+    document.getElementById("resetBtn").disabled = isPristine();
   }
 
   document.getElementById("inputs").addEventListener("input", render);
+
+  /* 图表里的文字是按「像素」为单位画的：容器宽度一变就得重画，否则图会被拉伸。
+     用 ResizeObserver 而不是 window.resize——切模式、字体加载这类布局变化它也能捕获。 */
+  var resizeTimer = null;
+  function scheduleRedraw() {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      var wrap = document.getElementById("chart-wrap");
+      /* 只比宽度：高度会因为 viewBox 变化而变，比高度会自己触发自己 */
+      if (wrap && Math.abs(wrap.clientWidth - lastChartW) > 1) render();
+    }, 120);
+  }
+  if (window.ResizeObserver) {
+    new ResizeObserver(scheduleRedraw).observe(document.getElementById("chart-wrap"));
+  } else {
+    window.addEventListener("resize", scheduleRedraw);
+  }
 
   /* 模式切换：点击 + 左右方向键（标准 tablist 键盘行为） */
   var modeTabs = [
@@ -841,6 +1196,116 @@
       next.el.focus();
       setMode(next.value);
     });
+  });
+
+  /* ============================================================
+     恢复默认
+     重置本身不可逆，所以配一条带「撤销」的提示条，误触也能救回来。
+     ============================================================ */
+  var FIELDS = [
+    "age", "assets", "income", "spouseIncome", "expense",
+    "incomeGrowth", "inflation", "returnRate", "withdrawRate", "maxAge",
+    "be1name", "be1year", "be1amt",
+    "be2name", "be2year", "be2amt",
+    "be3name", "be3year", "be3amt"
+  ];
+  /* 默认值直接取 HTML 里的 value 属性，避免和标记脱节 */
+  var DEFAULTS = {};
+  FIELDS.forEach(function (id) {
+    DEFAULTS[id] = document.getElementById(id).getAttribute("value") || "";
+  });
+
+  function snapshot() {
+    var s = { mode: mode };
+    FIELDS.forEach(function (id) { s[id] = document.getElementById(id).value; });
+    return s;
+  }
+  function applySnapshot(s) {
+    FIELDS.forEach(function (id) { document.getElementById(id).value = s[id]; });
+    setMode(s.mode); // setMode 内部会 render
+  }
+  function isPristine() {
+    if (mode !== "single") return false;
+    for (var i = 0; i < FIELDS.length; i++) {
+      if (document.getElementById(FIELDS[i]).value !== DEFAULTS[FIELDS[i]]) return false;
+    }
+    return true;
+  }
+
+  var resetBtn = document.getElementById("resetBtn");
+  var toast = document.getElementById("toast");
+  var toastTimer = null;
+  var undoState = null;
+
+  function hideToast() {
+    toast.hidden = true;
+    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+  }
+  resetBtn.addEventListener("click", function () {
+    undoState = snapshot();
+    FIELDS.forEach(function (id) { document.getElementById(id).value = DEFAULTS[id]; });
+    setMode("single");
+    toast.hidden = false;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 7000);
+  });
+  document.getElementById("toastUndo").addEventListener("click", function () {
+    if (undoState) applySnapshot(undoState);
+    hideToast();
+  });
+
+  /* ============================================================
+     主题
+     首屏已由 head 里的引导脚本定好 data-theme（避免闪白），
+     这里只负责切换、跟随系统变化，并让图表重新取色。
+     ============================================================ */
+  var THEME_KEY = "rc-theme";
+  var themeBtns = [].slice.call(document.querySelectorAll(".theme-switch [data-theme-pref]"));
+
+  function themePref() {
+    return document.documentElement.getAttribute("data-theme-pref") || "auto";
+  }
+  function systemDark() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  function applyTheme(pref, persist) {
+    document.documentElement.setAttribute("data-theme-pref", pref);
+    var dark = pref === "dark" || (pref === "auto" && systemDark());
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute("content", dark ? "#14241e" : "#f0efdf");
+    themeBtns.forEach(function (b) {
+      b.setAttribute("aria-checked", String(b.getAttribute("data-theme-pref") === pref));
+    });
+    if (persist) { try { localStorage.setItem(THEME_KEY, pref); } catch (e) { } }
+    readPalette(); // 图表取色读的是 CSS 变量，换主题后必须重读
+    render();
+  }
+
+  themeBtns.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      applyTheme(btn.getAttribute("data-theme-pref"), true);
+    });
+    btn.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      var next = themeBtns[(i + 1) % themeBtns.length];
+      next.focus();
+      applyTheme(next.getAttribute("data-theme-pref"), true);
+    });
+  });
+
+  /* 选「自动」时跟随系统实时切换 */
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    var onSystemChange = function () { if (themePref() === "auto") applyTheme("auto", false); };
+    if (mq.addEventListener) mq.addEventListener("change", onSystemChange);
+    else if (mq.addListener) mq.addListener(onSystemChange);
+  }
+
+  /* 同步首屏引导脚本设下的偏好到切换按钮上 */
+  themeBtns.forEach(function (b) {
+    b.setAttribute("aria-checked", String(b.getAttribute("data-theme-pref") === themePref()));
   });
 
   render();
