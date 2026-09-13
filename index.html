@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="5FNx9JTPAUEIv3KUA71Yf1">
+<head data-page-node-id="EKectsiEMPX7E1QXtARh7Y">
+<meta charset="UTF-8" data-page-node-id="CLPwNEGI9Io2Oz6suGQH5B">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="xTqjtzThV7Vof0Ln1XpdLH">
+<title>退休计算器 · FIRE 规划</title>
+<style>
+  :root {
+    /* 中性暖灰底 + 单一蓝色强调，风险语义红/绿 */
+    --bg: #f5f5f4;
+    --card: #ffffff;
+    --ink: #1c1917;
+    --muted: #78716c;
+    --line: #e7e5e4;
+    --field-bg: #fafaf9;
+    --primary: #2563eb;
+    --primary-deep: #1e40af;
+    --primary-soft: #eaf0fe;
+    --primary-ring: rgba(37, 99, 235, .16);
+    --accent: #d97706;
+    --good: #047857;
+    --good-bg: #ecfdf5;
+    --good-line: #a7f3d0;
+    --bad: #b91c1c;
+    --bad-bg: #fef2f2;
+    --bad-line: #fecaca;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --shadow: 0 1px 2px rgba(28, 25, 23, .04), 0 8px 24px -12px rgba(28, 25, 23, .10);
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    padding: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1080px; margin: 0 auto; }
+
+  /* ---------- 头部 ---------- */
+  header { text-align: center; padding: 28px 0 6px; }
+  .eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--primary-deep);
+    background: var(--primary-soft);
+    border: 1px solid #d3e0fc;
+    border-radius: 999px;
+    padding: 4px 12px;
+    margin-bottom: 14px;
+  }
+  header h1 {
+    font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.4rem);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  header p {
+    color: var(--muted);
+    font-size: .88rem;
+    margin-top: 8px;
+    text-wrap: pretty;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 20px;
+    align-items: start;
+    margin-top: 24px;
+  }
+
+  /* ---------- 卡片 ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    animation: rise .45s cubic-bezier(.2, .7, .3, 1) both;
+  }
+  .results .card:nth-child(2) { animation-delay: .06s; }
+  .results .card:nth-child(3) { animation-delay: .12s; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card h2 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: var(--ink);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* ---------- 模式切换 ---------- */
+  .mode-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    background: var(--field-bg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px;
+    margin-bottom: 18px;
+  }
+  .mode-switch button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 8px 0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+  }
+  .mode-switch button:hover { color: var(--ink); }
+  .mode-switch button.active {
+    background: #fff;
+    color: var(--primary-deep);
+    box-shadow: 0 1px 3px rgba(28, 25, 23, .12);
+  }
+  .mode-switch button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-ring);
+  }
+  .spouse-only { display: none; }
+  .mode-family .spouse-only { display: block; }
+
+  /* ---------- 输入 ---------- */
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field .input-wrap { display: flex; align-items: center; gap: 8px; }
+  .field input, .big-expense input {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--field-bg);
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .field input:hover, .big-expense input:hover { border-color: #d6d3d1; }
+  .field input:focus, .big-expense input:focus {
+    outline: none;
+    background: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-ring);
+  }
+  .unit { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .big-expense {
+    display: grid;
+    grid-template-columns: 1.1fr .65fr .65fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .big-expense input { min-height: 38px; padding: 6px 9px; font-size: 13px; min-width: 0; }
+  .big-expense-head { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+
+  /* ---------- 结论区 ---------- */
+  .results { display: grid; gap: 20px; }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .stat {
+    background: var(--primary-soft);
+    border: 1px solid #d3e0fc;
+    border-radius: var(--radius-sm);
+    padding: 16px 12px;
+    text-align: center;
+  }
+  .stat .label { font-size: 11px; letter-spacing: .04em; color: var(--muted); }
+  .stat .value {
+    font-size: clamp(1.25rem, 1rem + .9vw, 1.55rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--primary-deep);
+    margin-top: 4px;
+    line-height: 1.25;
+  }
+  .stat .value.bad { color: var(--bad); }
+  .stat .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .verdict {
+    margin-top: 14px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    line-height: 1.7;
+    text-wrap: pretty;
+    background: var(--good-bg);
+    color: var(--good);
+    border: 1px solid var(--good-line);
+  }
+  .verdict.bad { background: var(--bad-bg); color: var(--bad); border-color: var(--bad-line); }
+
+  /* ---------- 图表 ---------- */
+  #chart-wrap { width: 100%; }
+  #chart { width: 100%; height: auto; display: block; }
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 10px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend span::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .legend .l-asset::before { background: var(--primary); }
+  .legend .l-target::before {
+    background: transparent;
+    border: 2px dashed var(--accent);
+    width: 6px; height: 6px;
+  }
+
+  /* ---------- 敏感性表格 ---------- */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 10px; text-align: center; border-bottom: 1px solid var(--line); }
+  thead th {
+    background: var(--field-bg);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: .06em;
+  }
+  tbody th { font-weight: 600; color: var(--ink); font-size: 12.5px; }
+  tbody tr { transition: background .12s ease; }
+  tbody tr:hover { background: #f8fafc; }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: none; }
+  td.hl { background: var(--primary-soft); font-weight: 700; color: var(--primary-deep); }
+  td.never { color: var(--bad); }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11.5px;
+    padding: 20px 0 10px;
+    margin-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .field input, .big-expense input { min-height: 44px; }
+    .big-expense input { min-height: 42px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+    * { transition: none; }
+  }
+</style>
+</head>
+<body data-page-node-id="joXVHY2AqWVg8IFH4OcuOG">
+<div class="container" data-page-node-id="rkfKNNFNEGMjoi6q0xvUVo">
+  <header data-page-node-id="3FGBSMjgRCxuTUaUzZd3U1">
+    <span class="eyebrow" data-page-node-id="couKDJK5KysO9s6uTYJOD0">FIRE · 财务独立规划</span>
+    <h1 data-page-node-id="wrL2e2eB9BdWBWPGClasV3">退休计算器</h1>
+    <p data-page-node-id="oFCQgYkIOtbqtXAfRTDlCk">考虑涨薪、通胀与大额支出 · 单位：万元</p>
+  </header>
+
+  <div class="layout" data-page-node-id="YKgBiHvbWnwRuUJiE7auBw">
+    <!-- 输入面板 -->
+    <section class="card" id="inputs" data-page-node-id="CF29pPYDhZBcacAeRTSm8L">
+      <div class="mode-switch" role="tablist" aria-label="计算模式" data-page-node-id="eZOVFUZIGLE25cuxo25FYM">
+        <button type="button" id="modeSingle" class="active" role="tab" aria-selected="true" data-page-node-id="k3eq7uY1n0db0wqcBVq1eA">单身模式</button>
+        <button type="button" id="modeFamily" role="tab" aria-selected="false" data-page-node-id="tx5ib7MOe6MfnGDI3CMUJD">家庭模式（夫妻）</button>
+      </div>
+
+      <h2 data-page-node-id="yKpd5QICPaatn0D1Cd9SwA">基本情况</h2>
+      <div class="field-row" data-page-node-id="Hp8jCDuwm6q1b3AqWZPbPv">
+        <div class="field" data-page-node-id="F6HDCnUSjAQ1TEgtd22U6k">
+          <label data-page-node-id="E10TfnBLEK309HPZgwxcPu">当前年龄</label>
+          <div class="input-wrap" data-page-node-id="BDClrmDoyvMBnb8CZTAelV"><input type="number" id="age" value="30" min="16" max="70" data-page-node-id="QoQ34yErZEFbmgB4t5x8i5"><span class="unit" data-page-node-id="Ju68ulUohsinMdg0v5PPzR">岁</span></div>
+        </div>
+        <div class="field" data-page-node-id="gKNLHP9qAQ2ZuECgyitYEZ">
+          <label id="assetsLabel" data-page-node-id="eJ9et8SJmRm96PEuwePZHa">当前已有资产</label>
+          <div class="input-wrap" data-page-node-id="dwAFFE3zhjiKhXjx1SIibn"><input type="number" id="assets" value="10" min="0" step="1" data-page-node-id="FwFmVqKOUBCftTXWc5DsVO"><span class="unit" data-page-node-id="lhHpPUaDvFZiH0Dw1bCzsq">万</span></div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:10px;" data-page-node-id="uKuimF4N0mV8RAabOH94rL">收支情况</h2>
+      <div class="field-row" data-page-node-id="BGSrl8dDEk4ZLJxEBmw6Oj">
+        <div class="field" data-page-node-id="gu2vObtBYRrmDjYIkxAOyl">
+          <label id="incomeLabel" data-page-node-id="t0A4SbYZcHyESTp6JFXFZ5">税后年收入</label>
+          <div class="input-wrap" data-page-node-id="HmOcOHXWelWCNYjzP4yz93"><input type="number" id="income" value="20" min="0" step="0.5" data-page-node-id="mbjEyE49I2iDUTujUKLvLp"><span class="unit" data-page-node-id="7Iyv0PBHKajPSCQD2tx0Lc">万</span></div>
+        </div>
+        <div class="field spouse-only" data-page-node-id="2c3ayzoFUcaBcXF6cJwa7y">
+          <label data-page-node-id="upw624EynlyzixDQgZn2jc">配偶税后年收入</label>
+          <div class="input-wrap" data-page-node-id="y8i4eBcqOa6xSQ3az8TvpJ"><input type="number" id="spouseIncome" value="15" min="0" step="0.5" data-page-node-id="QFFYE9Y8rv6rmrLldGku6F"><span class="unit" data-page-node-id="yCBHGXkIwM46DC5iWZpB0q">万</span></div>
+        </div>
+        <div class="field" data-page-node-id="Aloke8d66v3c9dNXDLOAkP">
+          <label id="expenseLabel" data-page-node-id="H026k1pkqzxfrSsbYsTKQJ">年支出</label>
+          <div class="input-wrap" data-page-node-id="Uu528HuBb8mKZTXWQA7dJz"><input type="number" id="expense" value="12" min="0" step="0.5" data-page-node-id="VgpRKgM7DOgUYgJLAvEwLv"><span class="unit" data-page-node-id="w1SJ0CT4iI6FJmpZa3PZFz">万</span></div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:10px;" data-page-node-id="l5hluDrzzIlopRCFLH3jSL">增长假设（% / 年）</h2>
+      <div class="field-row" data-page-node-id="dPl7VJAhzj9hpTAw3ppv3a">
+        <div class="field" data-page-node-id="ZJETDzM19J3k05vzuHCoOf">
+          <label data-page-node-id="duCtkK11UronVLqwOcEdzD">收入年增长率（涨薪）</label>
+          <div class="input-wrap" data-page-node-id="BUmJNvMhy96hrCJGFcCUaD"><input type="number" id="incomeGrowth" value="3" step="0.5" data-page-node-id="wzoHUrde8TI9MaeOeCdTbQ"><span class="unit" data-page-node-id="DpJorI8uT4qqKfdsGt2W5f">%</span></div>
+        </div>
+        <div class="field" data-page-node-id="UeqpoALBRyx1x31Z6rWjJw">
+          <label data-page-node-id="vg7QTC0TFDSM4eHo6BIZ3L">通胀率（支出上涨）</label>
+          <div class="input-wrap" data-page-node-id="egxOlTBxsHIFdtLkeOw8UC"><input type="number" id="inflation" value="3" step="0.5" data-page-node-id="oprUjFgnqh9ZbwPfbc4KD2"><span class="unit" data-page-node-id="tY1sKNjwAb5iAK6oRxNtPe">%</span></div>
+        </div>
+      </div>
+      <div class="field-row" data-page-node-id="IImDL8yh7FGgxEpnffOkyO">
+        <div class="field" data-page-node-id="y4foZeRroGX7jhgHkpKtZt">
+          <label data-page-node-id="0pj3vD7Zf9Ym9gTEa1tF4a">投资年化收益率</label>
+          <div class="input-wrap" data-page-node-id="PiU3aFZQ1SBZhIoiYsEojc"><input type="number" id="returnRate" value="5" step="0.5" data-page-node-id="Y8OXDrFBOcp7Knxc00jkDT"><span class="unit" data-page-node-id="hz3kpGfd9QyShbUcAYEry2">%</span></div>
+        </div>
+        <div class="field" data-page-node-id="E02K1DdqBA2UUfQ4HT3OwS">
+          <label data-page-node-id="JmhnCke6KLKy9CdgmDhiv7">安全提取率（4% 法则）</label>
+          <div class="input-wrap" data-page-node-id="7dNcEQ17mnZCDGLarCYvP2"><input type="number" id="withdrawRate" value="4" step="0.25" min="1" max="10" data-page-node-id="HYiRhKn0YdoLJBC9XrHUgd"><span class="unit" data-page-node-id="hfGQnWF0xEBwWHym2jTQKZ">%</span></div>
+        </div>
+      </div>
+      <div class="field" data-page-node-id="NcVtwcFGrRYPhmFmQBjnbB">
+        <label data-page-node-id="hB3bI9PzzgmgydxcJVGDVF">最晚退休年龄</label>
+        <div class="input-wrap" data-page-node-id="r1bVK90fG8O8D3nLsJrPae"><input type="number" id="maxAge" value="65" min="40" max="80" data-page-node-id="CGi5NwyPg3sQLDIv5lJQ8m"><span class="unit" data-page-node-id="4pfhP2GVlRmyskJW7y5WVb">岁</span></div>
+      </div>
+
+      <h2 style="margin-top:10px;" data-page-node-id="EYhmS91c3EgZasxduODMTB">大额支出（可选，最多 3 笔）</h2>
+      <div class="big-expense-head" data-page-node-id="epsIVEm1axE9yKZSoVXhoU">名称 ｜ 第几年发生 ｜ 金额（万）</div>
+      <div class="big-expense" data-page-node-id="Xjx0YPjNmLMTIqdU4V2BgS">
+        <input type="text" id="be1name" placeholder="如：换房首付" data-page-node-id="CgN7BYzx0nJF4ydLhEDa4y">
+        <input type="number" id="be1year" placeholder="年" min="1" data-page-node-id="7xpbaKcR2xq71UK6tVEPDI">
+        <input type="number" id="be1amt" placeholder="万" min="0" data-page-node-id="JXodqULhGB2BybFBN39sTH">
+      </div>
+      <div class="big-expense" data-page-node-id="jknsVKbG3ErWdUnoOnmn67">
+        <input type="text" id="be2name" placeholder="如：子女留学" data-page-node-id="K7DzGH2VLqgoKCwLxeNkJF">
+        <input type="number" id="be2year" placeholder="年" min="1" data-page-node-id="lpxpSIWJrDM0ASJZmmm20p">
+        <input type="number" id="be2amt" placeholder="万" min="0" data-page-node-id="mI9xcwiXQ5jJc8kI5Tb8f6">
+      </div>
+      <div class="big-expense" data-page-node-id="sHAvW3FG0G0JRULsiMwLJ3">
+        <input type="text" id="be3name" placeholder="如：创业资金" data-page-node-id="kkwsmKlUwAwTelNWLqkfPZ">
+        <input type="number" id="be3year" placeholder="年" min="1" data-page-node-id="vPesgEJBvJj1WVlTIkN9ca">
+        <input type="number" id="be3amt" placeholder="万" min="0" data-page-node-id="BFEM8lM2BBgwrzWECVSqCU">
+      </div>
+    </section>
+
+    <!-- 结果面板 -->
+    <div class="results" data-page-node-id="RmV2CKVMUt41JIcuG0FDJo">
+      <section class="card" data-page-node-id="WCpwJQglm1hvTJRiYhtgUo">
+        <h2 data-page-node-id="dHPFWXSOcwZowbS0xtZxwS">结论</h2>
+        <div class="summary-grid" data-page-node-id="gGBWydmq9uiXqPB9FGnEd2">
+          <div class="stat" data-page-node-id="lAKqLhDLBzw0wWI5ZlVVYQ">
+            <div class="label" data-page-node-id="ROEx4qGqH1xFiZbDFqFku7">还需工作</div>
+            <div class="value" id="rYears" data-page-node-id="5UJ52cYiKOd3dNC7rHrMEa">—</div>
+            <div class="sub" id="rYearsSub" data-page-node-id="URteF0XRjMFfDyh1aXX7UL"></div>
+          </div>
+          <div class="stat" data-page-node-id="qcYOBF7eyKjyW8CjIIScHq">
+            <div class="label" data-page-node-id="w4XyHOIoTO1DApicsMlt9C">预计退休年龄</div>
+            <div class="value" id="rAge" data-page-node-id="tdWIvmATs3BiOgs9DLMi5P">—</div>
+            <div class="sub" id="rAgeSub" data-page-node-id="VFAEakzpDRnqVbI0Eczk4S"></div>
+          </div>
+          <div class="stat" data-page-node-id="CnXnBNx7tlyFmLsYhxo2Zc">
+            <div class="label" data-page-node-id="pecTlHAuX1WOGyGyuL6Sp7">退休目标金额</div>
+            <div class="value" id="rTarget" data-page-node-id="zZ9ya5FJ6DId7rSM7T6QX4">—</div>
+            <div class="sub" id="rTargetSub" data-page-node-id="zVZ8abBHj1aKAn6gt6uDc5"></div>
+          </div>
+          <div class="stat" data-page-node-id="zhSaS1gNtTGKLeDHFoyD5r">
+            <div class="label" data-page-node-id="PjaOhDBJznasI1EDBrUiv0">届时资产</div>
+            <div class="value" id="rAsset" data-page-node-id="i3vH1GaJyTy0bjg932HDr8">—</div>
+            <div class="sub" id="rAssetSub" data-page-node-id="kfzUDMQWGVyLPlDXOTbL5i"></div>
+          </div>
+        </div>
+        <div class="verdict" id="verdict" data-page-node-id="5PgbZVbI3F5SGvOkQfJP38"></div>
+      </section>
+
+      <section class="card" data-page-node-id="iOAAfH7o449fgqLXefVMjT">
+        <h2 data-page-node-id="xpTGlAWGeFMApnhYXioKRz">资产增长曲线</h2>
+        <div id="chart-wrap" data-page-node-id="CvVXrz67H9eEw782l3tTsf"><svg id="chart" viewBox="0 0 720 360" role="img" aria-label="资产增长曲线" data-page-node-id="erX6wqQKUP9AdQwLJFiiug"></svg></div>
+        <div class="legend" data-page-node-id="BNVKOin5S2ayqLKCUQSrJc">
+          <span class="l-asset" data-page-node-id="t5Y0nDfQ6sLAZrrfyXZk69">累计资产</span>
+          <span class="l-target" data-page-node-id="aftF5r9A2I23qrPyAEPXjL">退休目标金额（随通胀上移）</span>
+        </div>
+      </section>
+
+      <section class="card" data-page-node-id="8mlPAt4pLWEw0apVUGUeLm">
+        <h2 data-page-node-id="ee8zcmisktRRj0yYDNONj7">敏感性分析：收益率 × 支出变化 → 还需工作年限</h2>
+        <div class="table-scroll" data-page-node-id="ajE3LRDDzWmsBUpiLdMNAT">
+          <table id="sensTable" data-page-node-id="HOD4QE1TwWBdHvCSgdyNmE">
+            <thead data-page-node-id="KmUOzl1XNvdQYJiPtCx6TJ">
+              <tr data-page-node-id="0Q8eOLd6LhlgNz4XklPnpU"><th data-page-node-id="LBgJzyM89ZgmhwYBB7iJM9">收益率 \ 年支出</th><th data-page-node-id="y4pbu8CZF8BaMuz3dRo9dT">支出 −10%</th><th data-page-node-id="E7IC3VMgaLWPPDYyU17kmD">当前支出</th><th data-page-node-id="X6sfxyOtL8t4BM3jLiVADw">支出 +10%</th></tr>
+            </thead>
+            <tbody data-page-node-id="xNwhy0Hn944ONT3oEf9M8x"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer data-page-node-id="iaQ47kOkMr57Nt79JKvs41">本工具为规划参考，不构成投资建议。实际投资存在波动风险。</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var mode = "single"; // single | family
+
+  function num(id, fallback) {
+    var el = document.getElementById(id);
+    var v = parseFloat(el.value);
+    return isNaN(v) ? (fallback || 0) : v;
+  }
+
+  function readInputs() {
+    var bigExpenses = [];
+    for (var i = 1; i <= 3; i++) {
+      var y = num("be" + i + "year", 0);
+      var a = num("be" + i + "amt", 0);
+      var n = document.getElementById("be" + i + "name").value.trim();
+      if (y > 0 && a > 0) bigExpenses.push({ year: Math.round(y), amount: a, name: n || ("大额支出" + i) });
+    }
+    var income = num("income", 0);
+    if (mode === "family") income += num("spouseIncome", 0);
+    return {
+      mode: mode,
+      age: num("age", 30),
+      assets: num("assets", 0),
+      income: income,
+      expense: num("expense", 0),
+      incomeGrowth: num("incomeGrowth", 0) / 100,
+      inflation: num("inflation", 0) / 100,
+      returnRate: num("returnRate", 5) / 100,
+      withdrawRate: Math.max(0.5, num("withdrawRate", 4)) / 100,
+      maxAge: num("maxAge", 65),
+      bigExpenses: bigExpenses
+    };
+  }
+
+  /**
+   * 逐年模拟。返回 { years, retireAge, target, finalAssets, path: [{age, assets, target}], ok }
+   * overrides: { returnRate, expenseMult }
+   */
+  function simulate(inp, overrides) {
+    var r = overrides && overrides.returnRate !== undefined ? overrides.returnRate : inp.returnRate;
+    var eMult = overrides && overrides.expenseMult !== undefined ? overrides.expenseMult : 1;
+    var maxYears = Math.max(1, Math.round(inp.maxAge - inp.age));
+    var assets = inp.assets;
+    var path = [{ age: inp.age, assets: assets, target: inp.expense * eMult / inp.withdrawRate }];
+
+    for (var t = 1; t <= maxYears; t++) {
+      var income = inp.income * Math.pow(1 + inp.incomeGrowth, t);
+      var expense = inp.expense * eMult * Math.pow(1 + inp.inflation, t);
+      var big = 0;
+      inp.bigExpenses.forEach(function (b) { if (b.year === t) big += b.amount; });
+
+      assets = assets * (1 + r) + (income - expense) - big;
+      var target = expense / inp.withdrawRate;
+      var age = inp.age + t;
+      path.push({ age: age, assets: assets, target: target });
+
+      if (assets >= target && assets >= 0) {
+        // 年内线性插值，细化到月
+        var prev = path[t - 1];
+        var gapPrev = prev.target - prev.assets;
+        var gapNow = assets - target;
+        var frac = gapPrev + gapNow > 0 ? gapPrev / (gapPrev + gapNow) : 0;
+        var years = (t - 1) + Math.min(1, Math.max(0, frac));
+        return {
+          ok: true, years: years, retireAge: inp.age + years,
+          target: target, finalAssets: assets, path: path
+        };
+      }
+    }
+    return { ok: false, years: null, retireAge: null, target: path[path.length - 1].target, finalAssets: assets, path: path };
+  }
+
+  function fmtWan(v) {
+    if (Math.abs(v) >= 10000) return (v / 10000).toFixed(2) + " 亿";
+    return v.toFixed(0) + " 万";
+  }
+  function fmtYears(y) {
+    var yy = Math.floor(y), mm = Math.round((y - yy) * 12);
+    if (mm === 12) { yy++; mm = 0; }
+    return yy + " 年" + (mm > 0 ? " " + mm + " 个月" : "");
+  }
+
+  /* ---------- 模式切换 ---------- */
+  function setMode(m) {
+    mode = m;
+    var family = m === "family";
+    var btnS = document.getElementById("modeSingle");
+    var btnF = document.getElementById("modeFamily");
+    btnS.classList.toggle("active", !family);
+    btnF.classList.toggle("active", family);
+    btnS.setAttribute("aria-selected", String(!family));
+    btnF.setAttribute("aria-selected", String(family));
+    document.getElementById("inputs").classList.toggle("mode-family", family);
+    document.getElementById("assetsLabel").textContent = family ? "家庭已有资产" : "当前已有资产";
+    document.getElementById("incomeLabel").textContent = family ? "本人税后年收入" : "税后年收入";
+    document.getElementById("expenseLabel").textContent = family ? "家庭年支出" : "年支出";
+    render();
+  }
+
+  /* ---------- 图表（纯 SVG，响应式 viewBox） ---------- */
+  function drawChart(res, inp) {
+    var svg = document.getElementById("chart");
+    var W = 720, H = 360, padL = 64, padR = 16, padT = 20, padB = 36;
+    var iw = W - padL - padR, ih = H - padT - padB;
+    var NS = "http://www.w3.org/2000/svg";
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var path = res.path;
+    var maxV = 0, minV = Math.min(0, path[0].assets);
+    path.forEach(function (p) {
+      maxV = Math.max(maxV, p.assets, p.target);
+      minV = Math.min(minV, p.assets);
+    });
+    maxV = maxV * 1.08 || 1;
+    var minAge = path[0].age, maxAge = path[path.length - 1].age;
+
+    function x(age) { return padL + (age - minAge) / Math.max(1, maxAge - minAge) * iw; }
+    function y(v) { return padT + (1 - (v - minV) / (maxV - minV)) * ih; }
+
+    // 网格 + Y 轴标签
+    for (var g = 0; g <= 4; g++) {
+      var gv = minV + (maxV - minV) * g / 4;
+      var gy = y(gv);
+      var line = document.createElementNS(NS, "line");
+      line.setAttribute("x1", padL); line.setAttribute("x2", W - padR);
+      line.setAttribute("y1", gy); line.setAttribute("y2", gy);
+      line.setAttribute("stroke", "#e7e5e4"); line.setAttribute("stroke-width", "1");
+      svg.appendChild(line);
+      var txt = document.createElementNS(NS, "text");
+      txt.setAttribute("x", padL - 8); txt.setAttribute("y", gy + 4);
+      txt.setAttribute("text-anchor", "end");
+      txt.setAttribute("font-size", "11"); txt.setAttribute("fill", "#78716c");
+      txt.textContent = Math.abs(gv) >= 10000 ? (gv / 10000).toFixed(1) + "亿" : Math.round(gv) + "万";
+      svg.appendChild(txt);
+    }
+    // X 轴标签（约 6 个刻度）
+    var step = Math.max(1, Math.round((maxAge - minAge) / 6));
+    for (var a = minAge; a <= maxAge; a += step) {
+      var tx = document.createElementNS(NS, "text");
+      tx.setAttribute("x", x(a)); tx.setAttribute("y", H - 10);
+      tx.setAttribute("text-anchor", "middle");
+      tx.setAttribute("font-size", "11"); tx.setAttribute("fill", "#78716c");
+      tx.textContent = a + "岁";
+      svg.appendChild(tx);
+    }
+
+    function polyline(key, color, dash) {
+      var d = "";
+      path.forEach(function (p, i) {
+        d += (i === 0 ? "M" : "L") + x(p.age).toFixed(1) + "," + y(Math.max(p[key], minV)).toFixed(1) + " ";
+      });
+      var el = document.createElementNS(NS, "path");
+      el.setAttribute("d", d.trim());
+      el.setAttribute("fill", "none");
+      el.setAttribute("stroke", color);
+      el.setAttribute("stroke-width", "2.5");
+      el.setAttribute("stroke-linejoin", "round");
+      el.setAttribute("stroke-linecap", "round");
+      if (dash) el.setAttribute("stroke-dasharray", "6,5");
+      svg.appendChild(el);
+    }
+    polyline("target", "#d97706", true);
+    polyline("assets", "#2563eb", false);
+
+    // 标签定位工具：把文字限制在绘图区内，避免溢出或被裁切
+    function clampTx(tx, tw) {
+      return Math.max(padL + 2, Math.min(tx, W - padR - tw));
+    }
+    function estWidth(s) { return s.length * 11 + 6; }
+
+    // 退休交叉点（标签放在点的上方）
+    if (res.ok) {
+      var cx = x(res.retireAge), cy = y(res.target);
+      var c = document.createElementNS(NS, "circle");
+      c.setAttribute("cx", cx); c.setAttribute("cy", cy); c.setAttribute("r", "6");
+      c.setAttribute("fill", "#2563eb"); c.setAttribute("stroke", "#fff"); c.setAttribute("stroke-width", "2");
+      svg.appendChild(c);
+      var retireLabel = res.retireAge.toFixed(1) + " 岁退休";
+      var lt = document.createElementNS(NS, "text");
+      lt.setAttribute("x", clampTx(cx - estWidth(retireLabel) / 2, estWidth(retireLabel)));
+      lt.setAttribute("y", Math.max(cy - 12, padT + 4));
+      lt.setAttribute("font-size", "12"); lt.setAttribute("font-weight", "700"); lt.setAttribute("fill", "#1e40af");
+      lt.textContent = retireLabel;
+      svg.appendChild(lt);
+    }
+
+    // 大额支出标记（标签放在点的下方，与退休标签错开）
+    inp.bigExpenses.forEach(function (b) {
+      var age = inp.age + b.year;
+      if (age > maxAge) return;
+      var p = path[b.year];
+      if (!p) return;
+      var mx = x(age), my = y(Math.max(p.assets, minV));
+      var m = document.createElementNS(NS, "rect");
+      m.setAttribute("x", mx - 4); m.setAttribute("y", my - 4);
+      m.setAttribute("width", "8"); m.setAttribute("height", "8");
+      m.setAttribute("fill", "#b91c1c");
+      svg.appendChild(m);
+      var label = b.name + " -" + b.amount + "万";
+      var bt = document.createElementNS(NS, "text");
+      bt.setAttribute("x", clampTx(mx + 10, estWidth(label)));
+      bt.setAttribute("y", Math.min(my + 18, H - padB - 4));
+      bt.setAttribute("font-size", "10"); bt.setAttribute("fill", "#b91c1c");
+      bt.textContent = label;
+      svg.appendChild(bt);
+    });
+  }
+
+  /* ---------- 渲染 ---------- */
+  function render() {
+    var inp = readInputs();
+    var res = simulate(inp);
+    var who = inp.mode === "family" ? "你们家庭" : "你";
+
+    var rYears = document.getElementById("rYears");
+    var rAge = document.getElementById("rAge");
+    var rTarget = document.getElementById("rTarget");
+    var rAsset = document.getElementById("rAsset");
+    var verdict = document.getElementById("verdict");
+
+    if (res.ok) {
+      rYears.textContent = fmtYears(res.years);
+      rYears.className = "value";
+      document.getElementById("rYearsSub").textContent = "约 " + res.years.toFixed(1) + " 年";
+      rAge.textContent = res.retireAge.toFixed(1) + " 岁";
+      rAge.className = "value";
+      document.getElementById("rAgeSub").textContent = "当前 " + inp.age + " 岁";
+      rTarget.textContent = fmtWan(res.target);
+      document.getElementById("rTargetSub").textContent = "按退休当年支出 ÷ " + (inp.withdrawRate * 100).toFixed(2).replace(/\.?0+$/, "") + "%";
+      rAsset.textContent = fmtWan(res.finalAssets);
+      document.getElementById("rAssetSub").textContent = "退休当年累计资产";
+      verdict.className = "verdict";
+      verdict.textContent = "按当前假设，" + who + "将在约 " + res.retireAge.toFixed(1) +
+        " 岁达到财务独立：资产 " + fmtWan(res.finalAssets) +
+        " ≥ 退休目标 " + fmtWan(res.target) + "。";
+    } else {
+      rYears.textContent = "未达标";
+      rYears.className = "value bad";
+      document.getElementById("rYearsSub").textContent = "到 " + inp.maxAge + " 岁仍未达标";
+      rAge.textContent = "> " + inp.maxAge + " 岁";
+      rAge.className = "value bad";
+      document.getElementById("rAgeSub").textContent = "需调整假设";
+      rTarget.textContent = fmtWan(res.target);
+      document.getElementById("rTargetSub").textContent = inp.maxAge + " 岁时的目标金额";
+      rAsset.textContent = fmtWan(res.finalAssets);
+      document.getElementById("rAssetSub").textContent = inp.maxAge + " 岁时预计资产";
+      var gap = res.target - res.finalAssets;
+      verdict.className = "verdict bad";
+      verdict.textContent = "按当前假设，" + who + "到 " + inp.maxAge + " 岁仍无法退休：预计资产 " +
+        fmtWan(res.finalAssets) + "，距离目标还差 " + fmtWan(Math.max(0, gap)) +
+        "。可考虑提高储蓄率、提高收益率或降低支出。";
+    }
+
+    drawChart(res, inp);
+
+    // 敏感性：收益率 3/5/7% × 支出 -10/0/+10%
+    var tbody = document.querySelector("#sensTable tbody");
+    tbody.innerHTML = "";
+    [0.03, 0.05, 0.07].forEach(function (r) {
+      var tr = document.createElement("tr");
+      var th = document.createElement("th");
+      th.textContent = "年化 " + (r * 100).toFixed(0) + "%";
+      tr.appendChild(th);
+      [0.9, 1.0, 1.1].forEach(function (m, idx) {
+        var cell = document.createElement("td");
+        var s = simulate(inp, { returnRate: r, expenseMult: m });
+        if (s.ok) {
+          cell.textContent = s.years.toFixed(1) + " 年";
+        } else {
+          cell.textContent = "未达标";
+          cell.className = "never";
+        }
+        if (idx === 1 && Math.abs(r - inp.returnRate) < 0.001) cell.className = "hl";
+        tr.appendChild(cell);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.getElementById("inputs").addEventListener("input", render);
+  document.getElementById("modeSingle").addEventListener("click", function () { setMode("single"); });
+  document.getElementById("modeFamily").addEventListener("click", function () { setMode("family"); });
+  render();
+})();
+</script>
+</body>
+</html>
